@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noUncheckedIndexedAccess": true,
+        "strict": true,
+        "rootDir": "./src",
+        "outDir": "dist",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "noEmitOnError": true,
+        "skipLibCheck": true,
+        "removeComments": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "sourceMap": true,
+        "lib": ["ESNext", "DOM"],
+        "declaration": true,
+        "declarationDir": "dist",
+        "jsx": "react-jsx"
+    },
+    "include": ["types", "src"],
+    "exclude": ["node_modules"]
+}

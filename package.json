@@ -1,0 +1,24 @@
+{
+    "name": "react-localite",
+    "version": "0.0.1",
+    "private": false,
+    "type": "module",
+    "scripts": {
+        "build": "rollup -c"
+    },
+    "files": [
+        "dist"
+    ],
+    "peerDependencies": {
+        "react": ">=16"
+    },
+    "devDependencies": {
+        "@total-typescript/ts-reset": "^0.6.1",
+        "@types/node": "^26.1.1",
+        "@types/react": "^19.2.17",
+        "react": "^19.2.8",
+        "rollup": "^4.62.2",
+        "rollup-plugin-typescript2": "^0.37.0",
+        "typescript": "^6.0.3"
+    }
+}
