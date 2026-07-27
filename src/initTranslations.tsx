@@ -195,16 +195,17 @@ type Options<T extends Translations> = {
 }
 
 type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <
-    GKey extends LeafDotObjectKeys<D>,
+    GKey extends LeafDotObjectKeys<D> | undefined = undefined,
+    Dict extends Dictionary = GKey extends LeafDotObjectKeys<D> ? ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D> : D
 >(
     globalKey?: GKey,
 ) => {
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: <Key extends LeafDotValueKeys<GKey extends undefined ? D : ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D>>>(
-        key: Key,
-        ...parameters: DictParametersToArray<DictValueVariables<ValueByNestedKey<Split<Key, typeof JOIN_SIGN>, D>>>
+    t: <TKey extends LeafDotValueKeys<Dict>>(
+        key: TKey,
+        ...parameters: DictParametersToArray<DictValueVariables<ValueByNestedKey<Split<TKey, typeof JOIN_SIGN>, Dict>>>
     ) => string
 }
 
