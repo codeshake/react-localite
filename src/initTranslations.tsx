@@ -97,7 +97,7 @@ const useTranslations = <T extends Translations>(
     return { dict, locale, isLoading }
 }
 
-const Reg = /{([^}]+)}/g
+const Reg = /\{\{\s*([^}]+?)\s*\}\}/g
 
 const appendParameters = (value: string, parameters?: Record<string, string>) => {
     return value.replaceAll(Reg, (_, variable) => {
@@ -144,6 +144,42 @@ type LeafDotValueKeys<T extends object> = {
     [K in keyof T & string]: T[K] extends object ? `${K}${typeof JOIN_SIGN}${LeafDotValueKeys<T[K]>}` : K
 }[keyof T & string]
 
+type Split<Value extends string, Delimiter extends string> = string extends Value
+    ? string[]
+    : Value extends ""
+        ? []
+        : Value extends `${infer T}${Delimiter}${infer U}`
+            ? [T, ...Split<U, Delimiter>]
+            : [Value]
+
+type ValueByNestedKey<PathArray, Dict extends Dictionary> = PathArray extends [infer First, ...infer Rest]
+    ? First extends string
+        ? Dict[First] extends Dictionary
+            ? ValueByNestedKey<Rest, Dict[First]>
+            : Dict[First]
+        : unknown
+    : unknown
+
+type Whitespace = " " | "\n" | "\t" | "\r";
+
+type TrimLeft<S extends string> =
+  S extends `${Whitespace}${infer Rest}`
+    ? TrimLeft<Rest>
+    : S
+
+type TrimRight<S extends string> =
+  S extends `${infer Rest}${Whitespace}`
+    ? TrimRight<Rest>
+    : S
+
+type Trim<S extends string> = TrimLeft<TrimRight<S>>
+
+type DictValueVariables<Value, Parameters = {}> = Value extends `${infer _}{{${infer Variable}}}${infer Rest}`
+    ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
+    : Parameters
+
+type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
+
 type Options<T extends Translations> = {
     fallbackLocale: keyof T
     localeStorage?: LocaleStorage
@@ -151,11 +187,24 @@ type Options<T extends Translations> = {
     // events: onMissingKey, onMissingLang
 }
 
-type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <G extends LeafDotObjectKeys<D> | undefined = undefined>(globalKey?: G) => {
+type ContextStore<
+    T extends Translations,
+    D extends Dictionary = DictionaryUnwrap<T[keyof T]>
+> = <G extends LeafDotObjectKeys<D> | undefined = undefined>(globalKey?: G) => {
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: (key: LeafDotValueKeys<D>) => string
+    t: <Key extends LeafDotValueKeys<D>>(
+        key: Key,
+        ...parameters: DictParametersToArray<
+            DictValueVariables<
+                ValueByNestedKey<
+                    Split<Key, typeof JOIN_SIGN>,
+                    D
+                >
+            >
+        >
+    ) => string
 }
 
 const useStore = <T extends Translations>(
@@ -182,12 +231,16 @@ const useStore = <T extends Translations>(
                 localeStorage.set(nextLocale)
             },
             isLoading,
-            t: (key: string) => {
+            t: (key: string, ...parameters) => {
                 if (!dict) {
                     return key
                 }
 
-                return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN))
+                return findInDictByJoinedKey(
+                    dict,
+                    [globalKey, key].filter(Boolean).join(JOIN_SIGN),
+                    ...parameters,
+                )
             },
         }
     }
