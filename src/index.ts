@@ -1,3 +1,1 @@
-export const initiateTranslations = () => {
-    return 123
-}
+export * from "./initiateTranslations"
