@@ -1,1 +1,1 @@
-export * from "./initiateTranslations"
+export * from "./initTranslations"

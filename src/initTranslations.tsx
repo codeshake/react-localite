@@ -20,20 +20,6 @@ type DictionaryLoadItem = (() => Promise<{ default: Dictionary }>) | (() => Dict
 
 type Translations = Record<string, DictionaryLoadItem>
 
-type Options<T extends Translations> = {
-    fallbackLocale: keyof T
-    localeStorage?: LocaleStorage
-    debug?: boolean,
-    // events: onMissingKey, onMissingLang
-}
-
-type ContextStore = (globalKey?: string) => {
-    locale: string
-    setLocale: (locale: string) => void
-    isLoading: boolean
-    t: (key: string) => string
-}
-
 const getValidLocale = <T extends Translations>(
     translations: T,
     userLocale: Locale,
@@ -100,6 +86,20 @@ const useTranslations = <T extends Translations>(
     return { dict, locale, isLoading }
 }
 
+type Options<T extends Translations> = {
+    fallbackLocale: keyof T
+    localeStorage?: LocaleStorage
+    debug?: boolean,
+    // events: onMissingKey, onMissingLang
+}
+
+type ContextStore<T extends Translations> = (globalKey?: string) => {
+    locale: keyof T
+    setLocale: (locale: keyof T) => void
+    isLoading: boolean
+    t: (key: string) => string
+}
+
 const useStore = <T extends Translations>(
     translations: T,
     {
@@ -107,15 +107,23 @@ const useStore = <T extends Translations>(
         localeStorage = defaultLocaleStorage,
         debug = true,
     }: Options<T>,
-): ContextStore => {
+): ContextStore<T> => {
     const [userLocale, setUserLocale] = useState(localeStorage.get)
 
     const { dict, locale, isLoading } = useTranslations(translations, userLocale, fallbackLocale)
 
+    console.log(debug, dict)
+
     return globalKey => {
+        console.log(globalKey)
+
         return {
             locale,
             setLocale: nextLocale => {
+                if (typeof nextLocale !== "string") {
+                    throw new Error("Only string available")
+                }
+
                 setUserLocale(nextLocale)
                 localeStorage.set(nextLocale)
             },
@@ -129,20 +137,20 @@ export function initTranslations<T extends Translations>(
     translations: T,
     options: Options<T>,
 ) {
-    const Context = createContext<ContextStore | undefined>(undefined)
+    const Context = createContext<ContextStore<T> | undefined>(undefined)
 
     function TranslationProvider({ children }: PropsWithChildren) {
         return <Context.Provider value={useStore(translations, options)}>{ children }</Context.Provider>
     }
 
-    const useTranslation = (globalKey?: string) => {
+    const useTranslation: ContextStore<T> = (...parameters) => {
         const contextItem = useContext(Context)
 
         if (!contextItem) {
             throw new Error(`useTranslation was called out of TranslationProvider scope`)
         }
 
-        return contextItem(globalKey)
+        return contextItem(...parameters)
     }
 
     return { TranslationProvider, useTranslation }
