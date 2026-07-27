@@ -1,5 +1,7 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from "react"
 
+const JOIN_SIGN = "."
+
 export type Locale = string | string[] | undefined
 
 export type LocaleStorage = {
@@ -17,6 +19,15 @@ type Dictionary = {
 }
 
 type DictionaryLoadItem = (() => Promise<{ default: Dictionary }>) | (() => Dictionary) | Dictionary
+
+type DictionaryUnwrap<T extends DictionaryLoadItem> =
+    T extends Dictionary
+    ? T
+    : T extends () => Dictionary
+    ? ReturnType<T>
+    : T extends () => Promise<{ default: infer D }>
+    ? D
+    : never
 
 type Translations = Record<string, DictionaryLoadItem>
 
@@ -86,6 +97,14 @@ const useTranslations = <T extends Translations>(
     return { dict, locale, isLoading }
 }
 
+type LeafDotObjectKeys<T extends object> = {
+    [K in keyof T & string]: T[K] extends object ? K | `${K}${typeof JOIN_SIGN}${LeafDotObjectKeys<T[K]>}` : never
+}[keyof T & string]
+
+type LeafDotValueKeys<T extends object> = {
+    [K in keyof T & string]: T[K] extends object ? `${K}${typeof JOIN_SIGN}${LeafDotValueKeys<T[K]>}` : K
+}[keyof T & string]
+
 type Options<T extends Translations> = {
     fallbackLocale: keyof T
     localeStorage?: LocaleStorage
@@ -93,11 +112,11 @@ type Options<T extends Translations> = {
     // events: onMissingKey, onMissingLang
 }
 
-type ContextStore<T extends Translations> = (globalKey?: string) => {
+type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = (globalKey?: LeafDotObjectKeys<D>) => {
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: (key: string) => string
+    t: (key: LeafDotValueKeys<D>) => string
 }
 
 const useStore = <T extends Translations>(
