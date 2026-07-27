@@ -1,6 +1,8 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from "react"
 
 const JOIN_SIGN = "."
+const OPEN_TAG = "{{"
+const CLOSE_TAG = "}}"
 
 export type Locale = string | string[] | undefined
 
@@ -38,11 +40,11 @@ const getValidLocale = <T extends Translations>(
     if (Array.isArray(userLocale)) {
         for (const localeItem of userLocale) {
             if (Object.hasOwn(translations, localeItem)) {
-                return localeItem as keyof T
+                return localeItem satisfies keyof T
             }
         }
     } else if (userLocale && Object.hasOwn(translations, userLocale)) {
-        return userLocale as keyof T
+        return userLocale satisfies keyof T
     }
 
     return fallbackLocale
@@ -92,20 +94,34 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
     return { dict, locale, isLoading }
 }
 
-const Reg = /\{\{\s*([^}]+?)\s*\}\}/g
+const appendParameters = (template: string, parameters: Record<string, string> = {}) => {
+    let result = template
+    let cursor = 0
 
-const appendParameters = (value: string, parameters?: Record<string, string>) => {
-    return value.replaceAll(Reg, (_, variable) => {
-        const print = parameters?.[variable]
+    while (true) {
+        const left = result.indexOf(OPEN_TAG, cursor)
 
-        if (print === undefined) {
-            console.error(`Variable "${variable}" wasn't found for "${value}"`)
+        if (left === -1) break
 
-            return variable
+        const right = result.indexOf(CLOSE_TAG, left + OPEN_TAG.length)
+
+        if (right === -1) break
+
+        const key = result.slice(left + OPEN_TAG.length, right).trim()
+
+        let replacement = parameters[key]
+
+        if (!replacement) {
+            console.error(`Variable "${key}" wasn't found for "${template}"`)
+            replacement = key
         }
 
-        return print
-    })
+        result = result.slice(0, left) + replacement + result.slice(right + CLOSE_TAG.length)
+
+        cursor = left + replacement.length
+    }
+
+    return result
 }
 
 const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Record<string, string>) => {
@@ -165,7 +181,7 @@ type TrimRight<S extends string> = S extends `${infer Rest}${Whitespace}` ? Trim
 
 type Trim<S extends string> = TrimLeft<TrimRight<S>>
 
-type DictValueVariables<Value, Parameters = {}> = Value extends `${infer _}{{${infer Variable}}}${infer Rest}`
+type DictValueVariables<Value, Parameters = {}> = Value extends `${infer _}${typeof OPEN_TAG}${infer Variable}${typeof CLOSE_TAG}${infer Rest}`
     ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
     : Parameters
 
