@@ -157,8 +157,8 @@ type ValueByNestedKey<PathArray, Dict extends Dictionary> = PathArray extends [i
         ? Dict[First] extends Dictionary
             ? ValueByNestedKey<Rest, Dict[First]>
             : Dict[First]
-        : unknown
-    : unknown
+        : never
+    : Dict
 
 type Whitespace = " " | "\n" | "\t" | "\r";
 
@@ -190,11 +190,11 @@ type Options<T extends Translations> = {
 type ContextStore<
     T extends Translations,
     D extends Dictionary = DictionaryUnwrap<T[keyof T]>
-> = <G extends LeafDotObjectKeys<D> | undefined = undefined>(globalKey?: G) => {
+> = <GKey extends LeafDotObjectKeys<D> | undefined = undefined>(globalKey?: GKey) => {
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: <Key extends LeafDotValueKeys<D>>(
+    t: <Key extends LeafDotValueKeys<GKey extends LeafDotObjectKeys<D> ? ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D> : D>>(
         key: Key,
         ...parameters: DictParametersToArray<
             DictValueVariables<
