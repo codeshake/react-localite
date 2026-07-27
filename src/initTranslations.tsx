@@ -97,6 +97,45 @@ const useTranslations = <T extends Translations>(
     return { dict, locale, isLoading }
 }
 
+const Reg = /{([^}]+)}/g
+
+const appendParameters = (value: string, parameters?: Record<string, string>) => {
+    return value.replaceAll(Reg, (_, variable) => {
+        const print = parameters?.[variable]
+
+        if (print === undefined) {
+            console.error(`Variable "${variable}" wasn't found for "${value}"`)
+
+            return variable
+        }
+
+        return print
+    })
+}
+
+const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Record<string, string>) => {
+    const keyParts = key.split(JOIN_SIGN)
+
+    let currentLevel = dict
+    let pickKey: string | undefined
+
+    while (pickKey = keyParts.shift()) {
+        const node = currentLevel[pickKey]
+
+        if (typeof node === "string") {
+            return appendParameters(node, parameters)
+        } else if (node != null) {
+            currentLevel = node
+        } else {
+            break
+        }
+    }
+
+    console.error(`Key "${key}" not found in the dict.`, dict)
+
+    return key
+}
+
 type LeafDotObjectKeys<T extends object> = {
     [K in keyof T & string]: T[K] extends object ? K | `${K}${typeof JOIN_SIGN}${LeafDotObjectKeys<T[K]>}` : never
 }[keyof T & string]
@@ -112,7 +151,7 @@ type Options<T extends Translations> = {
     // events: onMissingKey, onMissingLang
 }
 
-type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = (globalKey?: LeafDotObjectKeys<D>) => {
+type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <G extends LeafDotObjectKeys<D> | undefined = undefined>(globalKey?: G) => {
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
@@ -124,18 +163,14 @@ const useStore = <T extends Translations>(
     {
         fallbackLocale,
         localeStorage = defaultLocaleStorage,
-        debug = true,
+        // debug = true,
     }: Options<T>,
 ): ContextStore<T> => {
     const [userLocale, setUserLocale] = useState(localeStorage.get)
 
     const { dict, locale, isLoading } = useTranslations(translations, userLocale, fallbackLocale)
 
-    console.log(debug, dict)
-
     return globalKey => {
-        console.log(globalKey)
-
         return {
             locale,
             setLocale: nextLocale => {
@@ -147,7 +182,13 @@ const useStore = <T extends Translations>(
                 localeStorage.set(nextLocale)
             },
             isLoading,
-            t: (key: string) => key,
+            t: (key: string) => {
+                if (!dict) {
+                    return key
+                }
+
+                return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN))
+            },
         }
     }
 }
