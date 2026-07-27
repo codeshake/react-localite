@@ -20,14 +20,13 @@ type Dictionary = {
 
 type DictionaryLoadItem = (() => Promise<{ default: Dictionary }>) | (() => Dictionary) | Dictionary
 
-type DictionaryUnwrap<T extends DictionaryLoadItem> =
-    T extends Dictionary
+type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
     ? T
     : T extends () => Dictionary
-    ? ReturnType<T>
-    : T extends () => Promise<{ default: infer D }>
-    ? D
-    : never
+      ? ReturnType<T>
+      : T extends () => Promise<{ default: infer D }>
+        ? D
+        : never
 
 type Translations = Record<string, DictionaryLoadItem>
 
@@ -65,11 +64,7 @@ const getResourceData = async <D extends DictionaryLoadItem>(resource: D): Promi
     return resource
 }
 
-const useTranslations = <T extends Translations>(
-    translations: T,
-    userLocale: Locale,
-    fallbackLocale: keyof T,
-) => {
+const useTranslations = <T extends Translations>(translations: T, userLocale: Locale, fallbackLocale: keyof T) => {
     const [isLoading, setIsLoading] = useState(false)
     const [dict, setDict] = useState<Dictionary>()
     const [locale, setLocale] = useState(() => getValidLocale(translations, userLocale, fallbackLocale))
@@ -88,7 +83,7 @@ const useTranslations = <T extends Translations>(
         } finally {
             setIsLoading(false)
         }
-    }, [translations, locale, fallbackLocale])
+    }, [fallbackLocale, translations, userLocale])
 
     useEffect(() => {
         load()
@@ -119,15 +114,17 @@ const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Recor
     let currentLevel = dict
     let pickKey: string | undefined
 
-    while (pickKey = keyParts.shift()) {
+    while ((pickKey = keyParts.shift())) {
         const node = currentLevel[pickKey]
 
         if (typeof node === "string") {
             return appendParameters(node, parameters)
-        } else if (node != null) {
-            currentLevel = node
-        } else {
+        }
+
+        if (node == null) {
             break
+        } else {
+            currentLevel = node
         }
     }
 
@@ -147,10 +144,10 @@ type LeafDotValueKeys<T extends object> = {
 type Split<Value extends string, Delimiter extends string> = string extends Value
     ? string[]
     : Value extends ""
-        ? []
-        : Value extends `${infer T}${Delimiter}${infer U}`
-            ? [T, ...Split<U, Delimiter>]
-            : [Value]
+      ? []
+      : Value extends `${infer T}${Delimiter}${infer U}`
+        ? [T, ...Split<U, Delimiter>]
+        : [Value]
 
 type ValueByNestedKey<PathArray, Dict extends Dictionary> = PathArray extends [infer First, ...infer Rest]
     ? First extends string
@@ -160,17 +157,11 @@ type ValueByNestedKey<PathArray, Dict extends Dictionary> = PathArray extends [i
         : never
     : Dict
 
-type Whitespace = " " | "\n" | "\t" | "\r";
+type Whitespace = " " | "\n" | "\t" | "\r"
 
-type TrimLeft<S extends string> =
-  S extends `${Whitespace}${infer Rest}`
-    ? TrimLeft<Rest>
-    : S
+type TrimLeft<S extends string> = S extends `${Whitespace}${infer Rest}` ? TrimLeft<Rest> : S
 
-type TrimRight<S extends string> =
-  S extends `${infer Rest}${Whitespace}`
-    ? TrimRight<Rest>
-    : S
+type TrimRight<S extends string> = S extends `${infer Rest}${Whitespace}` ? TrimRight<Rest> : S
 
 type Trim<S extends string> = TrimLeft<TrimRight<S>>
 
@@ -183,27 +174,21 @@ type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
 type Options<T extends Translations> = {
     fallbackLocale: keyof T
     localeStorage?: LocaleStorage
-    debug?: boolean,
+    debug?: boolean
     // events: onMissingKey, onMissingLang
 }
 
-type ContextStore<
-    T extends Translations,
-    D extends Dictionary = DictionaryUnwrap<T[keyof T]>
-> = <GKey extends LeafDotObjectKeys<D> | undefined = undefined>(globalKey?: GKey) => {
+type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <
+    GKey extends LeafDotObjectKeys<D>,
+>(
+    globalKey?: GKey,
+) => {
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: <Key extends LeafDotValueKeys<GKey extends LeafDotObjectKeys<D> ? ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D> : D>>(
+    t: <Key extends LeafDotValueKeys<GKey extends undefined ? D : ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D>>>(
         key: Key,
-        ...parameters: DictParametersToArray<
-            DictValueVariables<
-                ValueByNestedKey<
-                    Split<Key, typeof JOIN_SIGN>,
-                    D
-                >
-            >
-        >
+        ...parameters: DictParametersToArray<DictValueVariables<ValueByNestedKey<Split<Key, typeof JOIN_SIGN>, D>>>
     ) => string
 }
 
@@ -221,39 +206,32 @@ const useStore = <T extends Translations>(
 
     return globalKey => {
         return {
+            isLoading,
             locale,
             setLocale: nextLocale => {
                 if (typeof nextLocale !== "string") {
-                    throw new Error("Only string available")
+                    throw new TypeError("Only string available")
                 }
 
                 setUserLocale(nextLocale)
                 localeStorage.set(nextLocale)
             },
-            isLoading,
             t: (key: string, ...parameters) => {
                 if (!dict) {
                     return key
                 }
 
-                return findInDictByJoinedKey(
-                    dict,
-                    [globalKey, key].filter(Boolean).join(JOIN_SIGN),
-                    ...parameters,
-                )
+                return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN), ...parameters)
             },
         }
     }
 }
 
-export function initTranslations<T extends Translations>(
-    translations: T,
-    options: Options<T>,
-) {
+export function initTranslations<T extends Translations>(translations: T, options: Options<T>) {
     const Context = createContext<ContextStore<T> | undefined>(undefined)
 
     function TranslationProvider({ children }: PropsWithChildren) {
-        return <Context.Provider value={useStore(translations, options)}>{ children }</Context.Provider>
+        return <Context.Provider value={useStore(translations, options)}>{children}</Context.Provider>
     }
 
     const useTranslation: ContextStore<T> = (...parameters) => {
