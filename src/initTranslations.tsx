@@ -34,7 +34,11 @@ type Dictionary = {
     [key: string]: string | Dictionary
 }
 
-type DictionaryLoadItem = (() => Promise<{ default: Dictionary }>) | (() => Dictionary) | Dictionary
+type DictionaryPromiseParameters = {
+    abortController?: AbortController
+}
+
+type DictionaryLoadItem = ((parameters?: DictionaryPromiseParameters) => Promise<{ default: Dictionary }>) | (() => Dictionary) | Dictionary
 
 type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
     ? T
@@ -64,9 +68,9 @@ const getValidLocale = <T extends Translations>(
     return fallbackLocale
 }
 
-const getResourceData = async <D extends DictionaryLoadItem>(resource: D): Promise<Dictionary> => {
+const getResourceData = async <D extends DictionaryLoadItem>(resource: D, abortController?: AbortController): Promise<Dictionary> => {
     if (typeof resource === "function") {
-        const result = resource()
+        const result = resource({ abortController })
 
         if (result instanceof Promise) {
             const { default: promiseResult } = await result
@@ -85,12 +89,12 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
     const [dict, setDict] = useState<Dictionary>()
     const [locale, setLocale] = useState(() => getValidLocale(translations, userLocale, fallbackLocale))
 
-    const load = useCallback(async () => {
+    const load = useCallback(async (abortController?: AbortController) => {
         setIsLoading(true)
 
         try {
             const validLocale = getValidLocale(translations, userLocale, fallbackLocale)
-            const resourceData = await getResourceData(translations[validLocale])
+            const resourceData = await getResourceData(translations[validLocale], abortController)
 
             setDict(resourceData)
             setLocale(validLocale)
@@ -102,7 +106,13 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
     }, [fallbackLocale, translations, userLocale])
 
     useEffect(() => {
-        load()
+        const abortController = new AbortController()
+
+        load(abortController)
+
+        return () => {
+            abortController.abort()
+        }
     }, [load])
 
     return { dict, locale, isLoading }
