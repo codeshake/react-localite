@@ -12,8 +12,22 @@ export type LocaleStorage = {
 }
 
 const defaultLocaleStorage: LocaleStorage = {
-    get: () => localStorage.getItem("locale") ?? [...navigator.languages],
-    set: locale => localStorage.setItem("locale", locale),
+    get: () => {
+        if (typeof window === "undefined") return undefined
+
+        try {
+            return localStorage.getItem("locale") ?? [...navigator.languages]
+        } catch {
+            return [...navigator.languages]
+        }
+    },
+    set: locale => {
+        try {
+            localStorage.setItem("locale", locale)
+        } catch {
+            // silent catch
+        }
+    },
 }
 
 type Dictionary = {
