@@ -137,7 +137,7 @@ const appendParameters = (template: string, parameters: Record<string, string> =
 
         if (!replacement) {
             console.error(`Variable "${key}" wasn't found for "${template}"`)
-            replacement = key
+            replacement = `${OPEN_TAG}${key}${CLOSE_TAG}`
         }
 
         result = result.slice(0, left) + replacement + result.slice(right + CLOSE_TAG.length)
@@ -150,27 +150,23 @@ const appendParameters = (template: string, parameters: Record<string, string> =
 
 const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Record<string, string>) => {
     const keyParts = key.split(JOIN_SIGN)
+    let currentLevel: string | Dictionary | undefined = dict
 
-    let currentLevel = dict
-    let pickKey: string | undefined
-
-    while ((pickKey = keyParts.shift())) {
-        const node = currentLevel[pickKey]
-
-        if (typeof node === "string") {
-            return appendParameters(node, parameters)
+    for (const part of keyParts) {
+        if (typeof currentLevel !== "object" || currentLevel === null || !Object.hasOwn(currentLevel, part)) {
+            console.error(`Key "${key}" not found in the dict.`, dict)
+            return key
         }
 
-        if (node == null) {
-            break
-        } else {
-            currentLevel = node
-        }
+        currentLevel = currentLevel[part]
     }
 
-    console.error(`Key "${key}" not found in the dict.`, dict)
+    if (typeof currentLevel !== "string") {
+        console.error(`Key "${key}" resolves to a nested object, not a string.`, dict)
+        return key
+    }
 
-    return key
+    return appendParameters(currentLevel, parameters)
 }
 
 type LeafDotObjectKeys<T extends object> = {
