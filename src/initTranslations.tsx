@@ -99,9 +99,15 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
             setDict(resourceData)
             setLocale(validLocale)
         } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") {
+                return
+            }
+
             console.error(error)
         } finally {
-            setIsLoading(false)
+            if (!abortController?.signal.aborted) {
+                setIsLoading(false)
+            }
         }
     }, [fallbackLocale, translations, userLocale])
 
