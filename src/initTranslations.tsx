@@ -241,27 +241,30 @@ const useStore = <T extends Translations>(
 
     const { dict, locale, isLoading } = useTranslations(translations, userLocale, fallbackLocale)
 
-    return globalKey => {
+    const setLocale = useCallback(
+        (nextLocale: keyof T) => {
+            if (typeof nextLocale !== "string") {
+                throw new TypeError("Only string available")
+            }
+
+            setUserLocale(nextLocale)
+            localeStorage.set(nextLocale)
+        },
+        [localeStorage],
+    )
+
+    return useCallback(globalKey => {
         return {
             isLoading,
             locale,
-            setLocale: nextLocale => {
-                if (typeof nextLocale !== "string") {
-                    throw new TypeError("Only string available")
-                }
-
-                setUserLocale(nextLocale)
-                localeStorage.set(nextLocale)
-            },
+            setLocale,
             t: (key: string, ...parameters) => {
-                if (!dict) {
-                    return key
-                }
+                if (!dict) return key
 
                 return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN), ...parameters)
             },
         }
-    }
+    }, [isLoading, locale, setLocale, dict])
 }
 
 export function initTranslations<T extends Translations>(translations: T, options: Options<T>) {
