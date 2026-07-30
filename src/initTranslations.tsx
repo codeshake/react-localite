@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from "react"
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react"
 
 const JOIN_SIGN = "."
 const OPEN_TAG = "{{"
@@ -88,28 +88,22 @@ const getResourceData = async <D extends DictionaryLoadItem>(resource: D, abortC
 
 const useTranslations = <T extends Translations>(translations: T, userLocale: Locale, fallbackLocale: keyof T) => {
     const [isLoading, setIsLoading] = useState(false)
-    const [dict, setDict] = useState<Dictionary>()
-    const [locale, setLocale] = useState(() => getValidLocale(translations, userLocale, fallbackLocale))
+
+    const locale = useMemo(() => {
+        return getValidLocale(translations, userLocale, fallbackLocale)
+    }, [translations, userLocale, fallbackLocale])
+
+    const [dict, setDict] = useState<Dictionary | undefined>(dictCache.get(locale))
 
     const load = useCallback(async (abortController?: AbortController) => {
-        const validLocale = getValidLocale(translations, userLocale, fallbackLocale)
-
-        if (dictCache.has(validLocale)) {
-            setDict(dictCache.get(validLocale))
-            setLocale(validLocale)
-
-            return
-        }
-
         setIsLoading(true)
 
         try {
-            const resourceData = await getResourceData(translations[validLocale], abortController)
+            const resourceData = await getResourceData(translations[locale], abortController)
 
-            dictCache.set(validLocale, resourceData)
+            dictCache.set(locale, resourceData)
 
             setDict(resourceData)
-            setLocale(validLocale)
         } catch (error) {
             if (error instanceof DOMException && error.name === "AbortError") {
                 return
@@ -121,9 +115,15 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
                 setIsLoading(false)
             }
         }
-    }, [fallbackLocale, translations, userLocale])
+    }, [translations, locale])
 
     useEffect(() => {
+        if (dictCache.has(locale)) {
+            setDict(dictCache.get(locale))
+
+            return
+        }
+
         const abortController = new AbortController()
 
         load(abortController)
@@ -131,7 +131,7 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
         return () => {
             abortController.abort()
         }
-    }, [load])
+    }, [load, locale])
 
     return { dict, locale, isLoading }
 }
