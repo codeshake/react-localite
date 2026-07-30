@@ -50,6 +50,8 @@ type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
 
 type Translations = Record<string, DictionaryLoadItem>
 
+const dictCache = new Map<PropertyKey, Dictionary>()
+
 const getValidLocale = <T extends Translations>(
     translations: T,
     userLocale: Locale,
@@ -90,11 +92,21 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
     const [locale, setLocale] = useState(() => getValidLocale(translations, userLocale, fallbackLocale))
 
     const load = useCallback(async (abortController?: AbortController) => {
+        const validLocale = getValidLocale(translations, userLocale, fallbackLocale)
+
+        if (dictCache.has(validLocale)) {
+            setDict(dictCache.get(validLocale))
+            setLocale(validLocale)
+
+            return
+        }
+
         setIsLoading(true)
 
         try {
-            const validLocale = getValidLocale(translations, userLocale, fallbackLocale)
             const resourceData = await getResourceData(translations[validLocale], abortController)
+
+            dictCache.set(validLocale, resourceData)
 
             setDict(resourceData)
             setLocale(validLocale)
@@ -290,5 +302,12 @@ export function initTranslations<T extends Translations>(translations: T, option
         return contextItem(...parameters)
     }
 
-    return { TranslationProvider, useTranslation }
+    const preloadDictionary = async (locale: string, dictionary?: Dictionary) => {
+        const validLocale = getValidLocale(translations, locale, options.fallbackLocale)
+        const resourceData = dictionary ?? (await getResourceData(translations[validLocale]))
+
+        dictCache.set(validLocale, resourceData)
+    }
+
+    return { TranslationProvider, useTranslation, preloadDictionary }
 }
