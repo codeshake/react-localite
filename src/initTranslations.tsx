@@ -38,7 +38,10 @@ type DictionaryPromiseParameters = {
     abortController?: AbortController
 }
 
-type DictionaryLoadItem = ((parameters?: DictionaryPromiseParameters) => Promise<{ default: Dictionary }>) | (() => Dictionary) | Dictionary
+type DictionaryLoadItem =
+    | ((parameters?: DictionaryPromiseParameters) => Promise<{ default: Dictionary }>)
+    | (() => Dictionary)
+    | Dictionary
 
 type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
     ? T
@@ -70,7 +73,10 @@ const getValidLocale = <T extends Translations>(
     return fallbackLocale
 }
 
-const getResourceData = async <D extends DictionaryLoadItem>(resource: D, abortController?: AbortController): Promise<Dictionary> => {
+const getResourceData = async <D extends DictionaryLoadItem>(
+    resource: D,
+    abortController?: AbortController,
+): Promise<Dictionary> => {
     if (typeof resource === "function") {
         const result = resource({ abortController })
 
@@ -95,27 +101,30 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
 
     const [dict, setDict] = useState<Dictionary | undefined>(dictCache.get(locale))
 
-    const load = useCallback(async (abortController?: AbortController) => {
-        setIsLoading(true)
+    const load = useCallback(
+        async (abortController?: AbortController) => {
+            setIsLoading(true)
 
-        try {
-            const resourceData = await getResourceData(translations[locale], abortController)
+            try {
+                const resourceData = await getResourceData(translations[locale], abortController)
 
-            dictCache.set(locale, resourceData)
+                dictCache.set(locale, resourceData)
 
-            setDict(resourceData)
-        } catch (error) {
-            if (error instanceof DOMException && error.name === "AbortError") {
-                return
+                setDict(resourceData)
+            } catch (error) {
+                if (error instanceof DOMException && error.name === "AbortError") {
+                    return
+                }
+
+                console.error(error)
+            } finally {
+                if (!abortController?.signal.aborted) {
+                    setIsLoading(false)
+                }
             }
-
-            console.error(error)
-        } finally {
-            if (!abortController?.signal.aborted) {
-                setIsLoading(false)
-            }
-        }
-    }, [translations, locale])
+        },
+        [translations, locale],
+    )
 
     useEffect(() => {
         if (dictCache.has(locale)) {
@@ -133,7 +142,7 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
         }
     }, [load, locale])
 
-    return { dict, locale, isLoading }
+    return { dict, isLoading, locale }
 }
 
 const appendParameters = (template: string, parameters: Record<string, string> = {}) => {
@@ -171,8 +180,9 @@ const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Recor
     let currentLevel: string | Dictionary | undefined = dict
 
     for (const part of keyParts) {
-        if (typeof currentLevel !== "object" || currentLevel === null || !Object.hasOwn(currentLevel, part)) {
+        if (typeof currentLevel !== "object" || !Object.hasOwn(currentLevel, part)) {
             console.error(`Key "${key}" not found in the dict.`, dict)
+
             return key
         }
 
@@ -181,6 +191,7 @@ const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Recor
 
     if (typeof currentLevel !== "string") {
         console.error(`Key "${key}" resolves to a nested object, not a string.`, dict)
+
         return key
     }
 
@@ -219,7 +230,10 @@ type TrimRight<S extends string> = S extends `${infer Rest}${Whitespace}` ? Trim
 
 type Trim<S extends string> = TrimLeft<TrimRight<S>>
 
-type DictValueVariables<Value, Parameters = {}> = Value extends `${infer _}${typeof OPEN_TAG}${infer Variable}${typeof CLOSE_TAG}${infer Rest}`
+type DictValueVariables<
+    Value,
+    Parameters = {},
+> = Value extends `${infer _}${typeof OPEN_TAG}${infer Variable}${typeof CLOSE_TAG}${infer Rest}`
     ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
     : Parameters
 
@@ -234,7 +248,9 @@ type Options<T extends Translations> = {
 
 type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <
     GKey extends LeafDotObjectKeys<D> | undefined = undefined,
-    Dict extends Dictionary = GKey extends LeafDotObjectKeys<D> ? ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D> : D
+    Dict extends Dictionary = GKey extends LeafDotObjectKeys<D>
+        ? ValueByNestedKey<Split<GKey, typeof JOIN_SIGN>, D>
+        : D,
 >(
     globalKey?: GKey,
 ) => {
@@ -271,18 +287,21 @@ const useStore = <T extends Translations>(
         [localeStorage],
     )
 
-    return useCallback(globalKey => {
-        return {
-            isLoading,
-            locale,
-            setLocale,
-            t: (key: string, ...parameters) => {
-                if (!dict) return key
+    return useCallback(
+        globalKey => {
+            return {
+                isLoading,
+                locale,
+                setLocale,
+                t: (key: string, ...parameters) => {
+                    if (!dict) return key
 
-                return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN), ...parameters)
-            },
-        }
-    }, [isLoading, locale, setLocale, dict])
+                    return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN), ...parameters)
+                },
+            }
+        },
+        [isLoading, locale, setLocale, dict],
+    )
 }
 
 export function initTranslations<T extends Translations>(translations: T, options: Options<T>) {
