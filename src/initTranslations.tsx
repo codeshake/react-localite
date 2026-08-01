@@ -53,6 +53,11 @@ type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
 
 type Translations = Record<string, DictionaryLoadItem>
 
+type InitialState<T extends Translations> = {
+    locale: keyof T
+    dict: DictionaryUnwrap<T[keyof T]>
+}
+
 // const dictCache = new Map<PropertyKey, Dictionary>()
 
 const getValidLocale = <T extends Translations>(
@@ -264,14 +269,15 @@ const useStore = <T extends Translations>(
         localeStorage = defaultLocaleStorage,
         // debug = true,
     }: Options<T>,
+    initialState?: InitialState<T>
 ): ContextStore<T> => {
     const [userLocale, setUserLocale] = useState(localeStorage.get)
 
     const locale = useMemo(() => {
-        return getValidLocale(translations, userLocale, fallbackLocale)
-    }, [translations, userLocale, fallbackLocale])
+        return initialState?.locale ?? getValidLocale(translations, userLocale, fallbackLocale)
+    }, [initialState?.locale, translations, userLocale, fallbackLocale])
 
-    const { dict, isLoading } = useDictionary(translations[locale] satisfies T[keyof T])
+    const { dict, isLoading } = useDictionary(initialState?.dict ?? translations[locale] satisfies T[keyof T])
 
     const setLocale = useCallback(
         (nextLocale: keyof T) => {
@@ -305,8 +311,8 @@ const useStore = <T extends Translations>(
 export function initTranslations<T extends Translations>(translations: T, options: Options<T>) {
     const Context = createContext<ContextStore<T> | undefined>(undefined)
 
-    function TranslationProvider({ children }: PropsWithChildren) {
-        return <Context.Provider value={useStore(translations, options)}>{children}</Context.Provider>
+    function TranslationProvider({ children, initialState }: PropsWithChildren<{ initialState?: InitialState<T> }>) {
+        return <Context.Provider value={useStore(translations, options, initialState)}>{children}</Context.Provider>
     }
 
     const useTranslation: ContextStore<T> = (...parameters) => {
@@ -319,14 +325,5 @@ export function initTranslations<T extends Translations>(translations: T, option
         return contextItem(...parameters)
     }
 
-    const preloadDictionary = async (locale: string, dictionary?: Dictionary) => {
-        const validLocale = getValidLocale(translations, locale, options.fallbackLocale)
-        const resourceData = dictionary ?? (await getResourceData(translations[validLocale] satisfies T[keyof T]))
-
-        console.log(resourceData)
-
-        // dictCache.set(validLocale, resourceData)
-    }
-
-    return { TranslationProvider, useTranslation, preloadDictionary }
+    return { TranslationProvider, useTranslation }
 }
