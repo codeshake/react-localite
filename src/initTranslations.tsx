@@ -62,7 +62,7 @@ type InitialState<T extends Translations> = {
 
 const getValidLocale = <T extends Translations>(
     translations: T,
-    userLocale: Locale,
+    userLocale: Locale | keyof T,
     fallbackLocale: keyof T,
 ): keyof T => {
     if (Array.isArray(userLocale)) {
@@ -97,10 +97,10 @@ const getResourceData = async (
     return resource
 }
 
-const useDictionary = (dictionaryLoader: DictionaryLoadItem) => {
+const useDictionary = (dictionaryLoader: DictionaryLoadItem, initialDictState?: Dictionary) => {
     const [isLoading, setIsLoading] = useState(false)
 
-    const [dict, setDict] = useState<Dictionary | undefined>()
+    const [dict, setDict] = useState<Dictionary | undefined>(initialDictState)
 
     const load = useCallback(
         async (abortController?: AbortController) => {
@@ -271,13 +271,13 @@ const useStore = <T extends Translations>(
     }: Options<T>,
     initialState?: InitialState<T>
 ): ContextStore<T> => {
-    const [userLocale, setUserLocale] = useState(localeStorage.get)
+    const [userLocale, setUserLocale] = useState(() => initialState?.locale ?? localeStorage.get())
 
     const locale = useMemo(() => {
-        return initialState?.locale ?? getValidLocale(translations, userLocale, fallbackLocale)
+        return getValidLocale(translations, userLocale, fallbackLocale)
     }, [initialState?.locale, translations, userLocale, fallbackLocale])
 
-    const { dict, isLoading } = useDictionary(initialState?.dict ?? translations[locale] satisfies T[keyof T])
+    const { dict, isLoading } = useDictionary(translations[locale] satisfies T[keyof T], initialState?.dict)
 
     const setLocale = useCallback(
         (nextLocale: keyof T) => {
