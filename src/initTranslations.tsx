@@ -162,7 +162,7 @@ const appendParameters = (template: string, parameters: Record<string, string> =
 
         let replacement = parameters[key]
 
-        if (!replacement) {
+        if (replacement == null) {
             console.error(`Variable "${key}" wasn't found for "${template}"`)
             replacement = `${OPEN_TAG}${key}${CLOSE_TAG}`
         }
