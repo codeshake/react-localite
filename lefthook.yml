@@ -1,0 +1,12 @@
+pre-commit:
+    parallel: true
+    commands:
+        eslint:
+            glob: "*.{ts,tsx}"
+            run: npx eslint {staged_files} --fix
+            stage_fixed: true
+
+        markdown:
+            glob: "*.{json,md,yml,yaml}"
+            run: npx prettier {staged_files} --write
+            stage_fixed: true
