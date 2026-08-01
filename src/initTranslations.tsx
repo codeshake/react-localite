@@ -1,8 +1,11 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { DictLoadError, KeyResolvesToObjectError, LookupError, MissingKeyError, MissingParameterError } from "./errors"
 
 const JOIN_SIGN = "."
 const OPEN_TAG = "{{"
 const CLOSE_TAG = "}}"
+
+type LookupErrorHandler = (error: LookupError) => void
 
 export type Locale = string | string[] | undefined
 
@@ -97,7 +100,7 @@ const getResourceData = async (
     return resource
 }
 
-const useDictionary = (dictionaryLoader: DictionaryLoadItem, initialDictState?: Dictionary) => {
+const useDictionary = (dictionaryLoader: DictionaryLoadItem, onError: LookupErrorHandler, initialDictState?: Dictionary) => {
     const [isLoading, setIsLoading] = useState(false)
 
     const [dict, setDict] = useState<Dictionary | undefined>(initialDictState)
@@ -115,7 +118,7 @@ const useDictionary = (dictionaryLoader: DictionaryLoadItem, initialDictState?: 
                     return
                 }
 
-                console.error(error)
+                onError(new DictLoadError(error))
             } finally {
                 if (!abortController?.signal.aborted) {
                     setIsLoading(false)
@@ -144,7 +147,7 @@ const useDictionary = (dictionaryLoader: DictionaryLoadItem, initialDictState?: 
     return { dict, isLoading }
 }
 
-const appendParameters = (template: string, parameters: Record<string, string> = {}) => {
+const appendParameters = (template: string, onError: LookupErrorHandler, parameters: Record<string, string> = {}) => {
     let result = template
     let cursor = 0
 
@@ -162,7 +165,8 @@ const appendParameters = (template: string, parameters: Record<string, string> =
         let replacement = parameters[key]
 
         if (replacement == null) {
-            console.error(`Variable "${key}" wasn't found for "${template}"`)
+            onError(new MissingParameterError(key, template))
+
             replacement = `${OPEN_TAG}${key}${CLOSE_TAG}`
         }
 
@@ -174,13 +178,18 @@ const appendParameters = (template: string, parameters: Record<string, string> =
     return result
 }
 
-const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Record<string, string>) => {
+const findInDictByJoinedKey = (
+    dict: Dictionary,
+    key: string,
+    onError: LookupErrorHandler,
+    parameters?: Record<string, string>,
+) => {
     const keyParts = key.split(JOIN_SIGN)
     let currentLevel: string | Dictionary | undefined = dict
 
     for (const part of keyParts) {
         if (typeof currentLevel !== "object" || !Object.hasOwn(currentLevel, part)) {
-            console.error(`Key "${key}" not found in the dict.`, dict)
+            onError(new MissingKeyError(key))
 
             return key
         }
@@ -189,12 +198,12 @@ const findInDictByJoinedKey = (dict: Dictionary, key: string, parameters?: Recor
     }
 
     if (typeof currentLevel !== "string") {
-        console.error(`Key "${key}" resolves to a nested object, not a string.`, dict)
+        onError(new KeyResolvesToObjectError(key))
 
         return key
     }
 
-    return appendParameters(currentLevel, parameters)
+    return appendParameters(currentLevel, onError, parameters)
 }
 
 type LeafDotObjectKeys<T extends object> = {
@@ -241,8 +250,7 @@ type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
 type Options<T extends Translations> = {
     fallbackLocale: keyof T
     localeStorage?: LocaleStorage
-    debug?: boolean
-    // events: onMissingKey, onMissingLang
+    onError?: LookupErrorHandler
 }
 
 type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <
@@ -267,7 +275,7 @@ const useStore = <T extends Translations>(
     {
         fallbackLocale,
         localeStorage = defaultLocaleStorage,
-        // debug = true,
+        onError = console.error,
     }: Options<T>,
     initialState?: InitialState<T>
 ): ContextStore<T> => {
@@ -277,7 +285,11 @@ const useStore = <T extends Translations>(
         return getValidLocale(translations, userLocale, fallbackLocale)
     }, [initialState?.locale, translations, userLocale, fallbackLocale])
 
-    const { dict, isLoading } = useDictionary(translations[locale] satisfies T[keyof T], initialState?.dict)
+    const { dict, isLoading } = useDictionary(
+        translations[locale] satisfies T[keyof T],
+        onError,
+        initialState?.dict,
+    )
 
     const setLocale = useCallback(
         (nextLocale: keyof T) => {
@@ -300,7 +312,12 @@ const useStore = <T extends Translations>(
                 t: (key: string, ...parameters) => {
                     if (!dict) return key
 
-                    return findInDictByJoinedKey(dict, [globalKey, key].filter(Boolean).join(JOIN_SIGN), ...parameters)
+                    return findInDictByJoinedKey(
+                        dict,
+                        [globalKey, key].filter(Boolean).join(JOIN_SIGN),
+                        onError,
+                        ...parameters
+                    )
                 },
             }
         },
