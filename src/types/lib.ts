@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/name-replacements */
 import { CLOSE_DELIMITER, KEY_PATH_SEPARATOR, OPEN_DELIMITER } from "~/constants"
 import { LookupErrorHandler } from "~/errors"
-import { LeafDotObjectKeys, LeafDotValueKeys, ValueByNestedKey } from "./object"
+import { LeafObjectKeys, LeafValueKeys, ValueByNestedKey } from "./object"
 import { Split, Trim } from "./string"
 
 export type Locale = string | string[] | undefined
@@ -48,8 +48,8 @@ type DictValueVariables<
 type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
 
 export type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwrap<T[keyof T]>> = <
-    GKey extends LeafDotObjectKeys<D> | undefined = undefined,
-    Dict extends Dictionary = GKey extends LeafDotObjectKeys<D>
+    GKey extends LeafObjectKeys<D, typeof KEY_PATH_SEPARATOR> | undefined = undefined,
+    Dict extends Dictionary = GKey extends LeafObjectKeys<D, typeof KEY_PATH_SEPARATOR>
         ? ValueByNestedKey<Split<GKey, typeof KEY_PATH_SEPARATOR>, D>
         : D,
 >(
@@ -58,7 +58,7 @@ export type ContextStore<T extends Translations, D extends Dictionary = Dictiona
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: <TKey extends LeafDotValueKeys<Dict>>(
+    t: <TKey extends LeafValueKeys<Dict, typeof KEY_PATH_SEPARATOR>>(
         key: TKey,
         ...parameters: DictParametersToArray<
             DictValueVariables<ValueByNestedKey<Split<TKey, typeof KEY_PATH_SEPARATOR>, Dict>>

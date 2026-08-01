@@ -1,9 +1,9 @@
-export type LeafDotObjectKeys<T extends object, S extends string = ""> = {
-    [K in keyof T & string]: T[K] extends object ? K | `${K}${S}${LeafDotObjectKeys<T[K], S>}` : never
+export type LeafObjectKeys<T extends object, S extends string> = {
+    [K in keyof T & string]: T[K] extends object ? K | `${K}${S}${LeafObjectKeys<T[K], S>}` : never
 }[keyof T & string]
 
-export type LeafDotValueKeys<T extends object, S extends string = ""> = {
-    [K in keyof T & string]: T[K] extends object ? `${K}${S}${LeafDotValueKeys<T[K], S>}` : K
+export type LeafValueKeys<T extends object, S extends string> = {
+    [K in keyof T & string]: T[K] extends object ? `${K}${S}${LeafValueKeys<T[K], S>}` : K
 }[keyof T & string]
 
 export type ValueByNestedKey<PathArray, Data extends Record<string, unknown>> = PathArray extends [
