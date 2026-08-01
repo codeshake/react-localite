@@ -53,7 +53,7 @@ type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
 
 type Translations = Record<string, DictionaryLoadItem>
 
-const dictCache = new Map<PropertyKey, Dictionary>()
+// const dictCache = new Map<PropertyKey, Dictionary>()
 
 const getValidLocale = <T extends Translations>(
     translations: T,
@@ -73,8 +73,8 @@ const getValidLocale = <T extends Translations>(
     return fallbackLocale
 }
 
-const getResourceData = async <D extends DictionaryLoadItem>(
-    resource: D,
+const getResourceData = async (
+    resource: DictionaryLoadItem,
     abortController?: AbortController,
 ): Promise<Dictionary> => {
     if (typeof resource === "function") {
@@ -92,23 +92,17 @@ const getResourceData = async <D extends DictionaryLoadItem>(
     return resource
 }
 
-const useTranslations = <T extends Translations>(translations: T, userLocale: Locale, fallbackLocale: keyof T) => {
+const useDictionary = (dictionaryLoader: DictionaryLoadItem) => {
     const [isLoading, setIsLoading] = useState(false)
 
-    const locale = useMemo(() => {
-        return getValidLocale(translations, userLocale, fallbackLocale)
-    }, [translations, userLocale, fallbackLocale])
-
-    const [dict, setDict] = useState<Dictionary | undefined>(dictCache.get(locale))
+    const [dict, setDict] = useState<Dictionary | undefined>()
 
     const load = useCallback(
         async (abortController?: AbortController) => {
             setIsLoading(true)
 
             try {
-                const resourceData = await getResourceData(translations[locale], abortController)
-
-                dictCache.set(locale, resourceData)
+                const resourceData = await getResourceData(dictionaryLoader, abortController)
 
                 setDict(resourceData)
             } catch (error) {
@@ -123,15 +117,15 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
                 }
             }
         },
-        [translations, locale],
+        [dictionaryLoader],
     )
 
     useEffect(() => {
-        if (dictCache.has(locale)) {
-            setDict(dictCache.get(locale))
+        // if (dictCache.has(locale)) {
+        //     setDict(dictCache.get(locale))
 
-            return
-        }
+        //     return
+        // }
 
         const abortController = new AbortController()
 
@@ -140,9 +134,9 @@ const useTranslations = <T extends Translations>(translations: T, userLocale: Lo
         return () => {
             abortController.abort()
         }
-    }, [load, locale])
+    }, [load])
 
-    return { dict, isLoading, locale }
+    return { dict, isLoading }
 }
 
 const appendParameters = (template: string, parameters: Record<string, string> = {}) => {
@@ -273,7 +267,11 @@ const useStore = <T extends Translations>(
 ): ContextStore<T> => {
     const [userLocale, setUserLocale] = useState(localeStorage.get)
 
-    const { dict, locale, isLoading } = useTranslations(translations, userLocale, fallbackLocale)
+    const locale = useMemo(() => {
+        return getValidLocale(translations, userLocale, fallbackLocale)
+    }, [translations, userLocale, fallbackLocale])
+
+    const { dict, isLoading } = useDictionary(translations[locale] satisfies T[keyof T])
 
     const setLocale = useCallback(
         (nextLocale: keyof T) => {
@@ -323,9 +321,11 @@ export function initTranslations<T extends Translations>(translations: T, option
 
     const preloadDictionary = async (locale: string, dictionary?: Dictionary) => {
         const validLocale = getValidLocale(translations, locale, options.fallbackLocale)
-        const resourceData = dictionary ?? (await getResourceData(translations[validLocale]))
+        const resourceData = dictionary ?? (await getResourceData(translations[validLocale] satisfies T[keyof T]))
 
-        dictCache.set(validLocale, resourceData)
+        console.log(resourceData)
+
+        // dictCache.set(validLocale, resourceData)
     }
 
     return { TranslationProvider, useTranslation, preloadDictionary }
