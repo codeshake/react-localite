@@ -100,7 +100,11 @@ const getResourceData = async (
     return resource
 }
 
-const useDictionary = (dictionaryLoader: DictionaryLoadItem, onError: LookupErrorHandler, initialDictState?: Dictionary) => {
+const useDictionary = (
+    dictionaryLoader: DictionaryLoadItem,
+    onError: LookupErrorHandler,
+    initialDictState?: Dictionary,
+) => {
     const [isLoading, setIsLoading] = useState(false)
 
     const [dict, setDict] = useState<Dictionary | undefined>(initialDictState)
@@ -125,7 +129,7 @@ const useDictionary = (dictionaryLoader: DictionaryLoadItem, onError: LookupErro
                 }
             }
         },
-        [dictionaryLoader],
+        [dictionaryLoader, onError],
     )
 
     useEffect(() => {
@@ -272,24 +276,16 @@ type ContextStore<T extends Translations, D extends Dictionary = DictionaryUnwra
 
 const useStore = <T extends Translations>(
     translations: T,
-    {
-        fallbackLocale,
-        localeStorage = defaultLocaleStorage,
-        onError = console.error,
-    }: Options<T>,
-    initialState?: InitialState<T>
+    { fallbackLocale, localeStorage = defaultLocaleStorage, onError = console.error }: Options<T>,
+    initialState?: InitialState<T>,
 ): ContextStore<T> => {
     const [userLocale, setUserLocale] = useState(() => initialState?.locale ?? localeStorage.get())
 
     const locale = useMemo(() => {
         return getValidLocale(translations, userLocale, fallbackLocale)
-    }, [initialState?.locale, translations, userLocale, fallbackLocale])
+    }, [translations, userLocale, fallbackLocale])
 
-    const { dict, isLoading } = useDictionary(
-        translations[locale] satisfies T[keyof T],
-        onError,
-        initialState?.dict,
-    )
+    const { dict, isLoading } = useDictionary(translations[locale] satisfies T[keyof T], onError, initialState?.dict)
 
     const setLocale = useCallback(
         (nextLocale: keyof T) => {
@@ -316,12 +312,12 @@ const useStore = <T extends Translations>(
                         dict,
                         [globalKey, key].filter(Boolean).join(JOIN_SIGN),
                         onError,
-                        ...parameters
+                        ...parameters,
                     )
                 },
             }
         },
-        [isLoading, locale, setLocale, dict],
+        [isLoading, locale, setLocale, dict, onError],
     )
 }
 
