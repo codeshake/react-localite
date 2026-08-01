@@ -61,7 +61,7 @@ type InitialState<T extends Translations> = {
     dict: DictionaryUnwrap<T[keyof T]>
 }
 
-// const dictCache = new Map<PropertyKey, Dictionary>()
+const dictCache = new WeakMap<DictionaryLoadItem, Dictionary>()
 
 const getValidLocale = <T extends Translations>(
     translations: T,
@@ -107,14 +107,18 @@ const useDictionary = (
 ) => {
     const [isLoading, setIsLoading] = useState(false)
 
-    const [dict, setDict] = useState<Dictionary | undefined>(initialDictState)
+    const [dict, setDict] = useState<Dictionary | undefined>(() => {
+        return dictCache.get(dictionaryLoader) ?? initialDictState
+    })
 
     const load = useCallback(
-        async (abortController?: AbortController) => {
+        async (abortController: AbortController) => {
             setIsLoading(true)
 
             try {
                 const resourceData = await getResourceData(dictionaryLoader, abortController)
+
+                dictCache.set(dictionaryLoader, resourceData)
 
                 setDict(resourceData)
             } catch (error) {
@@ -124,7 +128,7 @@ const useDictionary = (
 
                 onError(new DictLoadError(error))
             } finally {
-                if (!abortController?.signal.aborted) {
+                if (!abortController.signal.aborted) {
                     setIsLoading(false)
                 }
             }
@@ -133,11 +137,11 @@ const useDictionary = (
     )
 
     useEffect(() => {
-        // if (dictCache.has(locale)) {
-        //     setDict(dictCache.get(locale))
+        if (dictCache.has(dictionaryLoader)) {
+            setDict(dictCache.get(dictionaryLoader))
 
-        //     return
-        // }
+            return
+        }
 
         const abortController = new AbortController()
 
@@ -146,7 +150,7 @@ const useDictionary = (
         return () => {
             abortController.abort()
         }
-    }, [load])
+    }, [load, dictionaryLoader])
 
     return { dict, isLoading }
 }
