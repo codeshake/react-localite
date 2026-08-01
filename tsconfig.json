@@ -22,7 +22,10 @@
         "lib": ["ESNext", "DOM"],
         "declaration": true,
         "declarationDir": "dist",
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "paths": {
+            "~/*": ["./src/*"]
+        }
     },
     "include": ["types", "src"],
     "exclude": ["node_modules"]

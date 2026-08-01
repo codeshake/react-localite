@@ -38,3 +38,5 @@ export class DictLoadError extends Error {
 }
 
 export type LookupError = MissingKeyError | KeyResolvesToObjectError | MissingParameterError | DictLoadError
+
+export type LookupErrorHandler = (error: LookupError) => void
