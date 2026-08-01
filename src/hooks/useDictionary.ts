@@ -61,6 +61,7 @@ export const useDictionary = (
 
     useEffect(() => {
         if (dictCache.has(dictionaryLoader)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setDict(dictCache.get(dictionaryLoader))
 
             return
@@ -68,12 +69,13 @@ export const useDictionary = (
 
         const abortController = new AbortController()
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         load(abortController)
 
         return () => {
             abortController.abort()
         }
-    }, [load, dictionaryLoader])
+    }, [dictionaryLoader, load])
 
     return { dict, isLoading }
 }

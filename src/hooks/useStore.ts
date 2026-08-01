@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react"
-import { ContextStore, InitialState, Options, Translations } from "~/types/lib"
-import { useDictionary } from "./useDictionary"
 import { KEY_PATH_SEPARATOR } from "~/constants"
+import { ContextStore, InitialState, Options, Translations } from "~/types/lib"
 import { appendParameters, findInDictByJoinedKey, getLocaleLocalStorage, getValidLocale } from "~/utils"
+import { useDictionary } from "./useDictionary"
 
 export const useStore = <T extends Translations>(
     translations: T,

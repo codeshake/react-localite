@@ -3,7 +3,7 @@ import { LocaleStorage } from "~/types/lib"
 export const getLocaleLocalStorage = (key: string): LocaleStorage => {
     return {
         get: () => {
-            if (typeof window === "undefined") return undefined
+            if (typeof window === "undefined") return
 
             try {
                 return localStorage.getItem(key) ?? [...navigator.languages]

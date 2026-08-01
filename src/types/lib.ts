@@ -1,7 +1,8 @@
+/* eslint-disable unicorn/name-replacements */
 import { CLOSE_DELIMITER, KEY_PATH_SEPARATOR, OPEN_DELIMITER } from "~/constants"
+import { LookupErrorHandler } from "~/errors"
 import { LeafDotObjectKeys, LeafDotValueKeys, ValueByNestedKey } from "./object"
 import { Split, Trim } from "./string"
-import { LookupErrorHandler } from "~/errors"
 
 export type Locale = string | string[] | undefined
 
@@ -19,9 +20,7 @@ export type DictionaryPromiseParameters = {
 }
 
 export type DictionaryLoadItem =
-    | ((parameters?: DictionaryPromiseParameters) => Promise<{ default: Dictionary }>)
-    | (() => Dictionary)
-    | Dictionary
+    ((parameters?: DictionaryPromiseParameters) => Promise<{ default: Dictionary }>) | (() => Dictionary) | Dictionary
 
 type DictionaryUnwrap<T extends DictionaryLoadItem> = T extends Dictionary
     ? T
@@ -40,6 +39,7 @@ export type InitialState<T extends Translations> = {
 
 type DictValueVariables<
     Value,
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Parameters = {},
 > = Value extends `${infer _}${typeof OPEN_DELIMITER}${infer Variable}${typeof CLOSE_DELIMITER}${infer Rest}`
     ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
@@ -60,7 +60,9 @@ export type ContextStore<T extends Translations, D extends Dictionary = Dictiona
     isLoading: boolean
     t: <TKey extends LeafDotValueKeys<Dict>>(
         key: TKey,
-        ...parameters: DictParametersToArray<DictValueVariables<ValueByNestedKey<Split<TKey, typeof KEY_PATH_SEPARATOR>, Dict>>>
+        ...parameters: DictParametersToArray<
+            DictValueVariables<ValueByNestedKey<Split<TKey, typeof KEY_PATH_SEPARATOR>, Dict>>
+        >
     ) => string
 }
 

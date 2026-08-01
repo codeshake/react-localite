@@ -2,11 +2,7 @@ import { KEY_PATH_SEPARATOR } from "~/constants"
 import { KeyResolvesToObjectError, LookupErrorHandler, MissingKeyError } from "~/errors"
 import { Dictionary } from "~/types/lib"
 
-export const findInDictByJoinedKey = (
-    dict: Dictionary,
-    key: string,
-    onError: LookupErrorHandler,
-) => {
+export const findInDictByJoinedKey = (dict: Dictionary, key: string, onError: LookupErrorHandler) => {
     const keyParts = key.split(KEY_PATH_SEPARATOR)
     let currentLevel: string | Dictionary | undefined = dict
 

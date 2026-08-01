@@ -1,7 +1,11 @@
 import { CLOSE_DELIMITER, OPEN_DELIMITER } from "~/constants"
 import { LookupErrorHandler, MissingParameterError } from "~/errors"
 
-export const appendParameters = (template: string, onError: LookupErrorHandler, parameters: Record<string, string> = {}) => {
+export const appendParameters = (
+    template: string,
+    onError: LookupErrorHandler,
+    parameters: Record<string, string> = {},
+) => {
     let result = template
     let cursor = 0
 
