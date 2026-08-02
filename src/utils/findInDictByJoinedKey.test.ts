@@ -42,10 +42,7 @@ describe("findInDictByJoinedKey", () => {
 
         expect(result).toBe("missing")
         expect(onError).toHaveBeenCalledTimes(1)
-
-        const error = onError.mock.calls[0]![0] as MissingKeyError
-
-        expect(error).toBeInstanceOf(MissingKeyError)
+        expect(onError.mock.calls[0]![0]).toBeInstanceOf(MissingKeyError)
     })
 
     it("returns key and reports MissingKeyError when nested key is missing", () => {
@@ -61,10 +58,7 @@ describe("findInDictByJoinedKey", () => {
 
         expect(result).toBe(key)
         expect(onError).toHaveBeenCalledTimes(1)
-
-        const error = onError.mock.calls[0]![0] as MissingKeyError
-
-        expect(error).toBeInstanceOf(MissingKeyError)
+        expect(onError.mock.calls[0]![0]).toBeInstanceOf(MissingKeyError)
     })
 
     it("returns key and reports MissingKeyError when trying to traverse through a string", () => {
@@ -80,10 +74,7 @@ describe("findInDictByJoinedKey", () => {
 
         expect(result).toBe(key)
         expect(onError).toHaveBeenCalledTimes(1)
-
-        const error = onError.mock.calls[0]![0] as MissingKeyError
-
-        expect(error).toBeInstanceOf(MissingKeyError)
+        expect(onError.mock.calls[0]![0]).toBeInstanceOf(MissingKeyError)
     })
 
     it("returns key and reports KeyResolvesToObjectError when key resolves to an object", () => {
@@ -99,9 +90,6 @@ describe("findInDictByJoinedKey", () => {
 
         expect(result).toBe("home")
         expect(onError).toHaveBeenCalledTimes(1)
-
-        const error = onError.mock.calls[0]![0] as KeyResolvesToObjectError
-
-        expect(error).toBeInstanceOf(KeyResolvesToObjectError)
+        expect(onError.mock.calls[0]![0]).toBeInstanceOf(KeyResolvesToObjectError)
     })
 })
