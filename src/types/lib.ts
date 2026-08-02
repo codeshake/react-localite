@@ -38,7 +38,7 @@ export type InitialState<T extends Translations> = {
 }
 
 type DictValueVariables<
-    Value,
+    Value extends string,
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Parameters = {},
 > = Value extends `${infer _}${typeof OPEN_DELIMITER}${infer Variable}${typeof CLOSE_DELIMITER}${infer Rest}`
@@ -58,11 +58,16 @@ export type ContextStore<T extends Translations, D extends Dictionary = Dictiona
     locale: keyof T
     setLocale: (locale: keyof T) => void
     isLoading: boolean
-    t: <TKey extends LeafValueKeys<Dict, typeof KEY_PATH_SEPARATOR>>(
+    t: <
+        TKey extends LeafValueKeys<Dict, typeof KEY_PATH_SEPARATOR>,
+        TValue = ValueByNestedKey<Split<TKey, typeof KEY_PATH_SEPARATOR>, Dict>,
+    >(
         key: TKey,
-        ...parameters: DictParametersToArray<
-            DictValueVariables<ValueByNestedKey<Split<TKey, typeof KEY_PATH_SEPARATOR>, Dict>>
-        >
+        ...parameters: TValue extends string
+            ? string extends TValue
+                ? [Record<string, string>?]
+                : DictParametersToArray<DictValueVariables<TValue>>
+            : []
     ) => string
 }
 

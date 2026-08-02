@@ -6,14 +6,12 @@ export type LeafValueKeys<T extends object, S extends string> = {
     [K in keyof T & string]: T[K] extends object ? `${K}${S}${LeafValueKeys<T[K], S>}` : K
 }[keyof T & string]
 
-export type ValueByNestedKey<PathArray, Data extends Record<string, unknown>> = PathArray extends [
-    infer First,
-    ...infer Rest,
-]
-    ? First extends string
-        ? // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-          Data[First] extends {}
-            ? ValueByNestedKey<Rest, Data[First]>
-            : Data[First]
-        : never
-    : Data
+export type ValueByNestedKey<PathArray extends readonly PropertyKey[], Data> = PathArray extends []
+    ? Data
+    : PathArray extends [infer Key, ...infer Rest]
+      ? Key extends keyof Data
+          ? Rest extends readonly PropertyKey[]
+              ? ValueByNestedKey<Rest, Data[Key]>
+              : never
+          : never
+      : never
