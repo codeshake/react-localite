@@ -23,6 +23,7 @@
         "declaration": true,
         "declarationDir": "dist",
         "jsx": "react-jsx",
+        "types": ["vitest/jsdom"],
         "paths": {
             "~/*": ["./src/*"]
         }
