@@ -2,6 +2,7 @@
     "name": "react-localite",
     "version": "1.0.0",
     "private": false,
+    "description": "A lightweight, fully type-safe React i18n library with lazy-loaded translations, interpolation, and rich text support.",
     "type": "module",
     "main": "dist/index.cjs",
     "module": "dist/index.mjs",
@@ -20,6 +21,27 @@
         "test": "vitest run",
         "test:watch": "vitest"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/codeshake/react-localite.git"
+    },
+    "keywords": [
+        "react",
+        "i18n",
+        "internationalization",
+        "localization",
+        "translations",
+        "translation",
+        "locale",
+        "locales",
+        "dictionary"
+    ],
+    "author": "codeshake",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/codeshake/react-localite/issues"
+    },
+    "homepage": "https://github.com/codeshake/react-localite#readme",
     "files": [
         "dist"
     ],
