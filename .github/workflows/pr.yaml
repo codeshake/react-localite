@@ -18,7 +18,7 @@ jobs:
               env:
                   TITLE: ${{ github.event.pull_request.title }}
               run: |
-                  REGEX='^(build|chore|ci|docs|style|refactor|perf|test):\s.+$'
+                  REGEX='^(fix|feat|build|chore|ci|docs|style|refactor|perf|test):\s.+$'
 
                   echo "PR title: $TITLE"
 
