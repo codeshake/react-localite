@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { CLOSE_DELIMITER, OPEN_DELIMITER } from "~/constants"
+import { PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN } from "~/constants"
 import { MissingParameterError } from "~/errors"
 import { appendParameters } from "./appendParameters"
 
@@ -7,7 +7,7 @@ describe("appendParameters", () => {
     it("replaces a single parameter", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(`Hello ${OPEN_DELIMITER}name${CLOSE_DELIMITER}!`, onError, { name: "John" })
+        const result = appendParameters(`Hello ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`, onError, { name: "John" })
 
         expect(result).toBe("Hello John!")
         expect(onError).not.toHaveBeenCalled()
@@ -17,7 +17,7 @@ describe("appendParameters", () => {
         const onError = vi.fn()
 
         const result = appendParameters(
-            `${OPEN_DELIMITER}greeting${CLOSE_DELIMITER}, ${OPEN_DELIMITER}name${CLOSE_DELIMITER}!`,
+            `${PLACEHOLDER_OPEN}greeting${PLACEHOLDER_CLOSE}, ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`,
             onError,
             {
                 greeting: "Hi",
@@ -32,7 +32,7 @@ describe("appendParameters", () => {
     it("trims whitespace around parameter names", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(`Hello ${OPEN_DELIMITER}  name   ${CLOSE_DELIMITER}!`, onError, {
+        const result = appendParameters(`Hello ${PLACEHOLDER_OPEN}  name   ${PLACEHOLDER_CLOSE}!`, onError, {
             name: "John",
         })
 
@@ -43,7 +43,7 @@ describe("appendParameters", () => {
     it("calls onError and leaves placeholder unchanged when parameter is missing", () => {
         const onError = vi.fn()
 
-        const template = `Hello ${OPEN_DELIMITER}name${CLOSE_DELIMITER}!`
+        const template = `Hello ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`
 
         const result = appendParameters(template, onError)
 
@@ -59,7 +59,7 @@ describe("appendParameters", () => {
     it("calls onError for every missing parameter", () => {
         const onError = vi.fn()
 
-        const template = `${OPEN_DELIMITER}first${CLOSE_DELIMITER} ${OPEN_DELIMITER}second${CLOSE_DELIMITER}`
+        const template = `${PLACEHOLDER_OPEN}first${PLACEHOLDER_CLOSE} ${PLACEHOLDER_OPEN}second${PLACEHOLDER_CLOSE}`
 
         const result = appendParameters(template, onError)
 
@@ -71,7 +71,7 @@ describe("appendParameters", () => {
         const onError = vi.fn()
 
         const result = appendParameters(
-            `${OPEN_DELIMITER}name${CLOSE_DELIMITER} ${OPEN_DELIMITER}name${CLOSE_DELIMITER}`,
+            `${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE} ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}`,
             onError,
             { name: "John" },
         )
@@ -94,7 +94,7 @@ describe("appendParameters", () => {
     it("ignores an unclosed placeholder", () => {
         const onError = vi.fn()
 
-        const template = `Hello ${OPEN_DELIMITER}name`
+        const template = `Hello ${PLACEHOLDER_OPEN}name`
 
         const result = appendParameters(template, onError, {
             name: "John",
@@ -107,12 +107,12 @@ describe("appendParameters", () => {
     it("uses replacement values containing placeholders without resolving them again", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(`${OPEN_DELIMITER}a${CLOSE_DELIMITER}`, onError, {
-            a: `${OPEN_DELIMITER}b${CLOSE_DELIMITER}`,
+        const result = appendParameters(`${PLACEHOLDER_OPEN}a${PLACEHOLDER_CLOSE}`, onError, {
+            a: `${PLACEHOLDER_OPEN}b${PLACEHOLDER_CLOSE}`,
             b: "value",
         })
 
-        expect(result).toBe(`${OPEN_DELIMITER}b${CLOSE_DELIMITER}`)
+        expect(result).toBe(`${PLACEHOLDER_OPEN}b${PLACEHOLDER_CLOSE}`)
         expect(onError).not.toHaveBeenCalled()
     })
 })

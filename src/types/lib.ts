@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/name-replacements */
-import { CLOSE_DELIMITER, KEY_PATH_SEPARATOR, OPEN_DELIMITER } from "~/constants"
+import { KEY_PATH_SEPARATOR, PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN } from "~/constants"
 import { LookupErrorHandler } from "~/errors"
 import { LeafObjectKeys, LeafValueKeys, ValueByNestedKey } from "./object"
 import { Split, Trim } from "./string"
@@ -41,7 +41,7 @@ type DictValueVariables<
     Value extends string,
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Parameters = {},
-> = Value extends `${infer _}${typeof OPEN_DELIMITER}${infer Variable}${typeof CLOSE_DELIMITER}${infer Rest}`
+> = Value extends `${infer _}${typeof PLACEHOLDER_OPEN}${infer Variable}${typeof PLACEHOLDER_CLOSE}${infer Rest}`
     ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
     : Parameters
 
