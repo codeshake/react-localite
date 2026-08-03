@@ -123,42 +123,6 @@ Parameters are inferred automatically from the translation string.
 
 ---
 
-## Initial SSR state
-
-To avoid loading dictionaries on the first render:
-
-```tsx
-<TranslationProvider
-    initialState={{
-        locale: "en",
-        dict: dictionary,
-    }}
->
-    <App />
-</TranslationProvider>
-```
-
----
-
-## Error handling
-
-```ts
-initTranslations(translations, {
-    fallbackLocale: "en",
-
-    onError(error) {
-        console.error(error)
-    },
-})
-```
-
-Errors include:
-
-- dictionary loading failures
-- lookup errors
-
----
-
 ## API
 
 ### `initTranslations(translations, options)`
@@ -193,3 +157,20 @@ Translation sources keyed by locale. Each locale can provide translations as a s
 | `setLocale(nextLocale: string)`                      | Sets the active locale.                                                                                                                            |
 | `isLoading`                                          | Indicates whether translations for the current locale are being loaded asynchronously. Use this to display a loading state in your UI.             |
 | `t(key: string, variables?: Record<string, string>)` | Returns the translated string for the given key. If the translation contains variables, they are replaced with the values provided in `variables`. |
+
+---
+
+## Initial SSR state
+
+To avoid loading dictionaries on the first render:
+
+```tsx
+<TranslationProvider
+    initialState={{
+        locale: "en",
+        dict: dictionary,
+    }}
+>
+    <App />
+</TranslationProvider>
+```
