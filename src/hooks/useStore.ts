@@ -35,7 +35,7 @@ export const useStore = <T extends Translations>(
                 isLoading,
                 locale,
                 setLocale,
-                t: (key: string, ...parameters) => {
+                t: (key, ...parameters) => {
                     if (!dict) return key
 
                     const template = findInDictByJoinedKey(
