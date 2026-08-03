@@ -1,3 +1,4 @@
+import tscAlias from "rollup-plugin-tsc-alias"
 import typescript from "rollup-plugin-typescript2"
 import packageJson from "./package.json" with { type: "json" }
 import tsConfigJson from "./tsconfig.json" with { type: "json" }
@@ -28,5 +29,6 @@ export default {
             exclude: ["node_modules"],
             useTsconfigDeclarationDir: true,
         }),
+        tscAlias(),
     ],
 }

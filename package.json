@@ -1,13 +1,47 @@
 {
     "name": "react-localite",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "private": false,
+    "description": "A lightweight, fully type-safe React i18n library with lazy-loaded translations, interpolation, and rich text support.",
     "type": "module",
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
+        }
+    },
     "scripts": {
         "build": "rollup -c",
         "eslint": "eslint .",
-        "eslint:fix": "npm run eslint -- --fix"
+        "eslint:fix": "npm run eslint -- --fix",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/codeshake/react-localite.git"
+    },
+    "keywords": [
+        "react",
+        "i18n",
+        "internationalization",
+        "localization",
+        "translations",
+        "translation",
+        "locale",
+        "locales",
+        "dictionary"
+    ],
+    "author": "codeshake",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/codeshake/react-localite/issues"
+    },
+    "homepage": "https://github.com/codeshake/react-localite#readme",
     "files": [
         "dist"
     ],
@@ -16,6 +50,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@testing-library/react": "^16.3.2",
         "@total-typescript/ts-reset": "^0.6.1",
         "@types/node": "^26.1.1",
         "@types/react": "^19.2.17",
@@ -27,12 +62,15 @@
         "eslint-plugin-sonarjs": "^4.2.0",
         "eslint-plugin-unicorn": "^72.0.0",
         "globals": "^17.8.0",
+        "jsdom": "^29.1.1",
         "lefthook": "^2.1.10",
         "prettier": "^3.9.6",
         "react": "^19.2.8",
         "rollup": "^4.62.2",
+        "rollup-plugin-tsc-alias": "^1.1.4",
         "rollup-plugin-typescript2": "^0.37.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.65.0"
+        "typescript-eslint": "^8.65.0",
+        "vitest": "^4.1.10"
     }
 }

@@ -16,8 +16,19 @@ export default defineConfig([
     },
     prettierRecommendedConfig,
     js.configs.recommended,
-    typescriptEslint.configs.recommended,
-    typescriptEslint.configs.recommendedTypeChecked,
+    {
+        files: ["**/*.ts", "**/*.tsx"],
+        extends: [...typescriptEslint.configs.recommended, ...typescriptEslint.configs.recommendedTypeChecked],
+        rules: {
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                {
+                    argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                },
+            ],
+        },
+    },
     sonarjs.configs.recommended,
     unicorn.configs.recommended,
     reactHooks.configs.flat.recommended,
@@ -26,7 +37,6 @@ export default defineConfig([
             "simple-import-sort": simpleImportSort,
         },
         rules: {
-            // Simple import
             "simple-import-sort/exports": "error",
             "simple-import-sort/imports": [
                 "error",
@@ -34,6 +44,19 @@ export default defineConfig([
                     groups: [[String.raw`^@?\w`, "^~", "^.", String.raw`^\u0000`]],
                 },
             ],
+
+            "unicorn/filename-case": [
+                "error",
+                {
+                    cases: {
+                        camelCase: true,
+                        pascalCase: true,
+                    },
+                },
+            ],
+            "unicorn/no-null": "off",
+
+            "sonarjs/function-return-type": "off",
         },
     },
     {
@@ -47,5 +70,8 @@ export default defineConfig([
                 project: projects,
             },
         },
+    },
+    {
+        files: ["**/*.ts", "**/*.tsx"],
     },
 ])
