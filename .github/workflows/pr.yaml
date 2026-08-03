@@ -1,0 +1,29 @@
+name: PR
+
+on:
+    pull_request:
+
+jobs:
+    pr-check:
+        runs-on: ubuntu-latest
+        environment: prod
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Check PR Title
+              env:
+                  TITLE: ${{ github.event.pull_request.title }}
+              run: |
+                  REGEX='^(build|chore|ci|docs|style|refactor|perf|test):\s.+$'
+
+                  echo "PR title: $TITLE"
+
+                  if ! [[ "$TITLE" =~ $REGEX ]]; then
+                    echo "::error::PR title does not match required format."
+                    echo "Expected: feat(scope): description"
+                    exit 1
+                  fi
