@@ -4,9 +4,8 @@ on:
     pull_request:
 
 jobs:
-    pr-check:
+    common:
         runs-on: ubuntu-latest
-        environment: prod
 
         steps:
             - name: Checkout
@@ -27,3 +26,24 @@ jobs:
                     echo "Expected: feat(scope): description"
                     exit 1
                   fi
+
+    tests:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Install Packages
+              run: npm ci --no-progress --ignore-scripts
+
+            - name: Run Tests
+              run: npm test
