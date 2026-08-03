@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest"
 import { PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN } from "~/constants"
 import { MissingParameterError } from "~/errors"
-import { appendParameters } from "./appendParameters"
+import { replacePlaceholders } from "./replacePlaceholders"
 
-describe("appendParameters", () => {
+describe("replacePlaceholders", () => {
     it("replaces a single parameter", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(`Hello ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`, onError, { name: "John" })
+        const result = replacePlaceholders(`Hello ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`, onError, {
+            name: "John",
+        })
 
         expect(result).toBe("Hello John!")
         expect(onError).not.toHaveBeenCalled()
@@ -16,7 +18,7 @@ describe("appendParameters", () => {
     it("replaces multiple parameters", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(
+        const result = replacePlaceholders(
             `${PLACEHOLDER_OPEN}greeting${PLACEHOLDER_CLOSE}, ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`,
             onError,
             {
@@ -32,7 +34,7 @@ describe("appendParameters", () => {
     it("trims whitespace around parameter names", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(`Hello ${PLACEHOLDER_OPEN}  name   ${PLACEHOLDER_CLOSE}!`, onError, {
+        const result = replacePlaceholders(`Hello ${PLACEHOLDER_OPEN}  name   ${PLACEHOLDER_CLOSE}!`, onError, {
             name: "John",
         })
 
@@ -45,7 +47,7 @@ describe("appendParameters", () => {
 
         const template = `Hello ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}!`
 
-        const result = appendParameters(template, onError)
+        const result = replacePlaceholders(template, onError)
 
         expect(result).toBe(template)
 
@@ -61,7 +63,7 @@ describe("appendParameters", () => {
 
         const template = `${PLACEHOLDER_OPEN}first${PLACEHOLDER_CLOSE} ${PLACEHOLDER_OPEN}second${PLACEHOLDER_CLOSE}`
 
-        const result = appendParameters(template, onError)
+        const result = replacePlaceholders(template, onError)
 
         expect(result).toBe(template)
         expect(onError).toHaveBeenCalledTimes(2)
@@ -70,7 +72,7 @@ describe("appendParameters", () => {
     it("supports repeated parameters", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(
+        const result = replacePlaceholders(
             `${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE} ${PLACEHOLDER_OPEN}name${PLACEHOLDER_CLOSE}`,
             onError,
             { name: "John" },
@@ -83,7 +85,7 @@ describe("appendParameters", () => {
     it("returns template unchanged if there are no placeholders", () => {
         const onError = vi.fn()
 
-        const result = appendParameters("Hello world", onError, {
+        const result = replacePlaceholders("Hello world", onError, {
             name: "John",
         })
 
@@ -96,7 +98,7 @@ describe("appendParameters", () => {
 
         const template = `Hello ${PLACEHOLDER_OPEN}name`
 
-        const result = appendParameters(template, onError, {
+        const result = replacePlaceholders(template, onError, {
             name: "John",
         })
 
@@ -107,7 +109,7 @@ describe("appendParameters", () => {
     it("uses replacement values containing placeholders without resolving them again", () => {
         const onError = vi.fn()
 
-        const result = appendParameters(`${PLACEHOLDER_OPEN}a${PLACEHOLDER_CLOSE}`, onError, {
+        const result = replacePlaceholders(`${PLACEHOLDER_OPEN}a${PLACEHOLDER_CLOSE}`, onError, {
             a: `${PLACEHOLDER_OPEN}b${PLACEHOLDER_CLOSE}`,
             b: "value",
         })

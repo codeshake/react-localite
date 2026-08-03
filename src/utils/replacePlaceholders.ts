@@ -1,7 +1,7 @@
 import { PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN } from "~/constants"
 import { LookupErrorHandler, MissingParameterError } from "~/errors"
 
-export const appendParameters = (
+export const replacePlaceholders = (
     template: string,
     onError: LookupErrorHandler,
     parameters: Record<string, string> = {},
