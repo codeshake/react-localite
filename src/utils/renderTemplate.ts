@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { cloneElement, isValidElement, ReactNode } from "react"
 import { CLOSING_TAG_PREFIX, PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN, TAG_END, TAG_START } from "~/constants"
 import { LookupErrorHandler, MissingParameterError, NoClosingTagError } from "~/errors"
 import { DictionaryParameters } from "~/types/lib"
@@ -149,6 +149,8 @@ const renderNodes = (
 ): ReactNode => {
     const rendered = tree.map(node => renderNode(template, node, parameters, onError))
 
+    if (rendered.length === 0) return ""
+
     const chunks: ReactNode[] = []
 
     for (const element of rendered) {
@@ -161,11 +163,15 @@ const renderNodes = (
         }
     }
 
-    if (chunks.length === 0) return ""
-
     if (chunks.length === 1) return chunks[0]
 
-    return chunks
+    return chunks.map((chunk, index) => {
+        if (isValidElement(chunk)) {
+            return cloneElement(chunk, { key: index.toString() })
+        }
+
+        return chunk
+    })
 }
 
 export const renderTemplate = (

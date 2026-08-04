@@ -129,7 +129,7 @@ describe("renderTemplate", () => {
                 b: content => <strong>{content}</strong>,
             })
 
-            expect(result).toEqual(["Hello ", <strong>world</strong>, "!"])
+            expect(result).toEqual(["Hello ", <strong key="1">world</strong>, "!"])
             expect(onError).not.toHaveBeenCalled()
         })
 
@@ -141,7 +141,7 @@ describe("renderTemplate", () => {
                 i: content => <i>{content}</i>,
             })
 
-            expect(result).toEqual([<b>Hello</b>, " ", <i>world</i>])
+            expect(result).toEqual([<b key="0">Hello</b>, " ", <i key="2">world</i>])
             expect(onError).not.toHaveBeenCalled()
         })
 
