@@ -20,7 +20,7 @@ A lightweight, fully type-safe React internationalization library with lazy-load
 - Full TypeScript autocomplete for translation keys
 - Nested translation dictionaries
 - Lazy-loaded dictionaries with caching
-- Placeholder interpolation
+- Placeholder and tags interpolation
 - React Context based
 - Fallback locale support
 - Persistent locale storage
