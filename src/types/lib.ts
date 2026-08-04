@@ -16,6 +16,10 @@ export type Dictionary = {
     [key: string]: string | Dictionary
 }
 
+export type DictionaryParameter = ((content: ReactNode) => ReactNode) | ReactNode
+
+export type DictionaryParameters = Record<string, DictionaryParameter>
+
 export type DictionaryPromiseParameters = {
     abortController?: AbortController
 }
@@ -43,7 +47,7 @@ type DictValueVariables<
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Parameters = {},
 > = Value extends `${infer _}${typeof PLACEHOLDER_OPEN}${infer Variable}${typeof PLACEHOLDER_CLOSE}${infer Rest}`
-    ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
+    ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, DictionaryParameter>>
     : Parameters
 
 type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
@@ -66,7 +70,7 @@ export type ContextStore<T extends Translations, D extends Dictionary = Dictiona
         key: TKey,
         ...parameters: TValue extends string
             ? string extends TValue
-                ? [Record<string, string>?]
+                ? [DictionaryParameters?]
                 : DictParametersToArray<DictValueVariables<TValue>>
             : []
     ) => ReactNode

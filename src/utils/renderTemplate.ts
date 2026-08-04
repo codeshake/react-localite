@@ -1,6 +1,7 @@
 import { ReactNode } from "react"
 import { CLOSING_TAG_PREFIX, PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN, TAG_END, TAG_START } from "~/constants"
 import { LookupErrorHandler, MissingParameterError, NoClosingTagError } from "~/errors"
+import { DictionaryParameters } from "~/types/lib"
 
 type TemplateNode =
     | { kind: "text"; value: string }
@@ -93,7 +94,7 @@ const parseTemplate = (input: string, onError: LookupErrorHandler): TemplateNode
 const renderNode = (
     template: string,
     node: TemplateNode,
-    parameters: Record<string, ((content: ReactNode) => ReactNode) | ReactNode>,
+    parameters: DictionaryParameters,
     onError: LookupErrorHandler,
 ): ReactNode => {
     if (node.kind === "text") {
@@ -141,7 +142,7 @@ const isPrimitive = (value: unknown) => value !== Object(value)
 const renderNodes = (
     template: string,
     tree: TemplateNode[],
-    parameters: Record<string, ((content: ReactNode) => ReactNode) | ReactNode>,
+    parameters: DictionaryParameters,
     onError: LookupErrorHandler,
 ): ReactNode => {
     const rendered = tree.map(node => renderNode(template, node, parameters, onError))
@@ -159,7 +160,7 @@ const renderNodes = (
 export const renderTemplate = (
     template: string,
     onError: LookupErrorHandler,
-    parameters: Record<string, ((content: ReactNode) => ReactNode) | ReactNode> = {},
+    parameters: DictionaryParameters = {},
 ) => {
     const tree = parseTemplate(template, onError)
 
