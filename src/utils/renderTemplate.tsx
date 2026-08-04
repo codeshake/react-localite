@@ -137,7 +137,9 @@ const renderNode = (
     return null
 }
 
-const isPrimitive = (value: unknown) => value !== Object(value)
+const reactTextTypes = new Set(["string", "number", "bigint"])
+
+const isReactText = (value: unknown): value is string | number | bigint => reactTextTypes.has(typeof value)
 
 const renderNodes = (
     template: string,
@@ -147,14 +149,23 @@ const renderNodes = (
 ): ReactNode => {
     const rendered = tree.map(node => renderNode(template, node, parameters, onError))
 
-    if (rendered.length === 1) return rendered[0]
+    const chunks: ReactNode[] = []
 
-    if (rendered.every(part => isPrimitive(part))) {
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-        return rendered.join("")
+    for (const element of rendered) {
+        const last = chunks.at(-1)
+
+        if (isReactText(last) && isReactText(element)) {
+            chunks[chunks.length - 1] = String(last) + String(element)
+        } else {
+            chunks.push(element)
+        }
     }
 
-    return rendered
+    if (chunks.length === 0) return ""
+
+    if (chunks.length === 1) return chunks[0]
+
+    return chunks
 }
 
 export const renderTemplate = (
