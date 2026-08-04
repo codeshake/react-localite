@@ -45,5 +45,8 @@ jobs:
             - name: Install Packages
               run: npm ci --no-progress --ignore-scripts
 
+            - name: Run linting
+              run: npm run eslint
+
             - name: Run Tests
               run: npm test
