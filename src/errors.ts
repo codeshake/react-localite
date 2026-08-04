@@ -37,6 +37,16 @@ export class DictLoadError extends Error {
     }
 }
 
-export type LookupError = MissingKeyError | KeyResolvesToObjectError | MissingParameterError | DictLoadError
+export class NoClosingTagError extends Error {
+    readonly code = "no_closing_tag" as const
+
+    constructor(readonly tagName: string) {
+        super(`Tag "${tagName}" is never closed`)
+        this.name = "NoClosingTagError"
+    }
+}
+
+export type LookupError =
+    MissingKeyError | KeyResolvesToObjectError | MissingParameterError | DictLoadError | NoClosingTagError
 
 export type LookupErrorHandler = (error: LookupError) => void

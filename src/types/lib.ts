@@ -1,4 +1,5 @@
 /* eslint-disable unicorn/name-replacements */
+import { ReactNode } from "react"
 import { KEY_PATH_SEPARATOR, PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN } from "~/constants"
 import { LookupErrorHandler } from "~/errors"
 import { LeafObjectKeys, LeafValueKeys, ValueByNestedKey } from "./object"
@@ -68,7 +69,7 @@ export type ContextStore<T extends Translations, D extends Dictionary = Dictiona
                 ? [Record<string, string>?]
                 : DictParametersToArray<DictValueVariables<TValue>>
             : []
-    ) => string
+    ) => ReactNode
 }
 
 export type Options<T extends Translations> = {

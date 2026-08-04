@@ -20,6 +20,8 @@ export default defineConfig([
         files: ["**/*.ts", "**/*.tsx"],
         extends: [...typescriptEslint.configs.recommended, ...typescriptEslint.configs.recommendedTypeChecked],
         rules: {
+            "no-unused-vars": "off",
+
             "@typescript-eslint/no-unused-vars": [
                 "error",
                 {
@@ -37,6 +39,8 @@ export default defineConfig([
             "simple-import-sort": simpleImportSort,
         },
         rules: {
+            "no-console": ["error", { allow: ["error"] }],
+
             "simple-import-sort/exports": "error",
             "simple-import-sort/imports": [
                 "error",
@@ -57,6 +61,8 @@ export default defineConfig([
             "unicorn/no-null": "off",
 
             "sonarjs/function-return-type": "off",
+            "sonarjs/no-unused-vars": "off",
+            "sonarjs/void-use": "off",
         },
     },
     {
