@@ -1,6 +1,13 @@
 /* eslint-disable unicorn/name-replacements */
 import { ReactNode } from "react"
-import { KEY_PATH_SEPARATOR, PLACEHOLDER_CLOSE, PLACEHOLDER_OPEN } from "~/constants"
+import {
+    CLOSING_TAG_PREFIX,
+    KEY_PATH_SEPARATOR,
+    PLACEHOLDER_CLOSE,
+    PLACEHOLDER_OPEN,
+    TAG_END,
+    TAG_START,
+} from "~/constants"
 import { LookupErrorHandler } from "~/errors"
 import { LeafObjectKeys, LeafValueKeys, ValueByNestedKey } from "./object"
 import { Split, Trim } from "./string"
@@ -48,7 +55,9 @@ type DictValueVariables<
     Parameters = {},
 > = Value extends `${infer _}${typeof PLACEHOLDER_OPEN}${infer Variable}${typeof PLACEHOLDER_CLOSE}${infer Rest}`
     ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, DictionaryParameter>>
-    : Parameters
+    : Value extends `${infer _}${typeof TAG_START}${infer Variable}${typeof TAG_END}${infer _}${typeof TAG_START}${typeof CLOSING_TAG_PREFIX}${infer Variable}${typeof TAG_END}${infer Rest}`
+      ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, DictionaryParameter>>
+      : Parameters
 
 type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
 
