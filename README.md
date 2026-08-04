@@ -1,11 +1,12 @@
 # React Localite
 
-[![CI](https://github.com/codeshake/react-localite/actions/workflows/release.yaml/badge.svg)](https://github.com/codeshake/react-localite/actions/workflows/release.yaml)
-[![Coverage Status](https://coveralls.io/repos/github/codeshake/react-localite/badge.svg)](https://coveralls.io/github/codeshake/react-localite)
+[![CI][ci-badge]][ci-url]
 [![Size][size-badge]][size-url]
 [![Quality][quality-badge]][quality-url]
 [![npm][npm-dl-badge]][npm-url]
 
+[ci-badge]: https://github.com/codeshake/react-localite/actions/workflows/release.yaml/badge.svg
+[ci-url]: https://github.com/codeshake/react-localite/actions/workflows/release.yaml
 [npm-url]: https://npmjs.org/package/react-localite
 [npm-dl-badge]: https://img.shields.io/npm/dw/react-localite
 [quality-badge]: https://npm.packagequality.com/shield/react-localite.svg
