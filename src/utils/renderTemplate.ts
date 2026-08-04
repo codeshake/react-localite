@@ -111,7 +111,7 @@ const renderNode = (
         }
 
         if (typeof parameter === "function") {
-            return parameter("")
+            return parameter(null)
         }
 
         return parameter
