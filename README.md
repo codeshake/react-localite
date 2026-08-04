@@ -107,6 +107,7 @@ Dictionary:
 ```ts
 export default {
     welcome: "Hello, {{ firstName }} {{ lastName }}!",
+    profile: "Please visit your <link>profile page</link>",
 }
 ```
 
@@ -116,6 +117,10 @@ Usage:
 t("welcome", {
     firstName: "John",
     lastName: "Doe",
+})
+
+t("profile", {
+    link: content => <a href="/profile">{content}</a>,
 })
 ```
 
@@ -151,12 +156,12 @@ Translation sources keyed by locale. Each locale can provide translations as a s
 
 ### Returns:
 
-| Variable                                             | Description                                                                                                                                        |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `locale`                                             | The currently active locale.                                                                                                                       |
-| `setLocale(nextLocale: string)`                      | Sets the active locale.                                                                                                                            |
-| `isLoading`                                          | Indicates whether translations for the current locale are being loaded asynchronously. Use this to display a loading state in your UI.             |
-| `t(key: string, variables?: Record<string, string>)` | Returns the translated string for the given key. If the translation contains variables, they are replaced with the values provided in `variables`. |
+| Variable                                                                                       | Description                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `locale`                                                                                       | The currently active locale.                                                                                                                       |
+| `setLocale(nextLocale: string)`                                                                | Sets the active locale.                                                                                                                            |
+| `isLoading`                                                                                    | Indicates whether translations for the current locale are being loaded asynchronously. Use this to display a loading state in your UI.             |
+| `t(key: string, variables?: Record<string, ReactNode \| ((content: ReactNode) => ReactNode>))` | Returns the translated string for the given key. If the translation contains variables, they are replaced with the values provided in `variables`. |
 
 ---
 
