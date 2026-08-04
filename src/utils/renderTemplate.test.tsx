@@ -133,6 +133,23 @@ describe("renderTemplate", () => {
             expect(onError).not.toHaveBeenCalled()
         })
 
+        it("replaces a nested tag", () => {
+            const onError = vi.fn()
+
+            const result = renderTemplate("Hello <b><b>simple</b> world</b>!", onError, {
+                b: content => <strong>{content}</strong>,
+            })
+
+            expect(result).toEqual([
+                "Hello ",
+                <strong key="1">
+                    <strong key="0">simple</strong> world
+                </strong>,
+                "!",
+            ])
+            expect(onError).not.toHaveBeenCalled()
+        })
+
         it("replaces multiple tags", () => {
             const onError = vi.fn()
 
