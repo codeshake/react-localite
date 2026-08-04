@@ -136,6 +136,8 @@ const renderNode = (
     return null
 }
 
+const isPrimitive = (value: unknown) => value !== Object(value)
+
 const renderNodes = (
     template: string,
     tree: TemplateNode[],
@@ -146,7 +148,8 @@ const renderNodes = (
 
     if (rendered.length === 1) return rendered[0]
 
-    if (rendered.every(part => typeof part === "string")) {
+    if (rendered.every(part => isPrimitive(part))) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         return rendered.join("")
     }
 
