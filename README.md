@@ -1,11 +1,12 @@
 # React Localite
 
-[![CI](https://github.com/codeshake/react-localite/actions/workflows/release.yaml/badge.svg)](https://github.com/codeshake/react-localite/actions/workflows/release.yaml)
-[![Coverage Status](https://coveralls.io/repos/github/codeshake/react-localite/badge.svg)](https://coveralls.io/github/codeshake/react-localite)
+[![CI][ci-badge]][ci-url]
 [![Size][size-badge]][size-url]
 [![Quality][quality-badge]][quality-url]
 [![npm][npm-dl-badge]][npm-url]
 
+[ci-badge]: https://github.com/codeshake/react-localite/actions/workflows/release.yaml/badge.svg
+[ci-url]: https://github.com/codeshake/react-localite/actions/workflows/release.yaml
 [npm-url]: https://npmjs.org/package/react-localite
 [npm-dl-badge]: https://img.shields.io/npm/dw/react-localite
 [quality-badge]: https://npm.packagequality.com/shield/react-localite.svg
@@ -20,7 +21,7 @@ A lightweight, fully type-safe React internationalization library with lazy-load
 - Full TypeScript autocomplete for translation keys
 - Nested translation dictionaries
 - Lazy-loaded dictionaries with caching
-- Placeholder interpolation
+- Placeholder and tags interpolation
 - React Context based
 - Fallback locale support
 - Persistent locale storage
@@ -107,6 +108,7 @@ Dictionary:
 ```ts
 export default {
     welcome: "Hello, {{ firstName }} {{ lastName }}!",
+    profile: "Please visit your <link>profile page</link>",
 }
 ```
 
@@ -116,6 +118,10 @@ Usage:
 t("welcome", {
     firstName: "John",
     lastName: "Doe",
+})
+
+t("profile", {
+    link: content => <a href="/profile">{content}</a>,
 })
 ```
 
@@ -151,12 +157,12 @@ Translation sources keyed by locale. Each locale can provide translations as a s
 
 ### Returns:
 
-| Variable                                             | Description                                                                                                                                        |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `locale`                                             | The currently active locale.                                                                                                                       |
-| `setLocale(nextLocale: string)`                      | Sets the active locale.                                                                                                                            |
-| `isLoading`                                          | Indicates whether translations for the current locale are being loaded asynchronously. Use this to display a loading state in your UI.             |
-| `t(key: string, variables?: Record<string, string>)` | Returns the translated string for the given key. If the translation contains variables, they are replaced with the values provided in `variables`. |
+| Variable                                                                                       | Description                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `locale`                                                                                       | The currently active locale.                                                                                                                       |
+| `setLocale(nextLocale: string)`                                                                | Sets the active locale.                                                                                                                            |
+| `isLoading`                                                                                    | Indicates whether translations for the current locale are being loaded asynchronously. Use this to display a loading state in your UI.             |
+| `t(key: string, variables?: Record<string, ReactNode \| ((content: ReactNode) => ReactNode>))` | Returns the translated string for the given key. If the translation contains variables, they are replaced with the values provided in `variables`. |
 
 ---
 

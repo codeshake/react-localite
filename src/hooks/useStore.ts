@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { KEY_PATH_SEPARATOR } from "~/constants"
 import { ContextStore, InitialState, Options, Translations } from "~/types/lib"
-import { appendParameters, findInDictByJoinedKey, getLocaleLocalStorage, getValidLocale } from "~/utils"
+import { findInDictByJoinedKey, getLocaleLocalStorage, getValidLocale, renderTemplate } from "~/utils"
 import { useDictionary } from "./useDictionary"
 
 export const useStore = <T extends Translations>(
@@ -44,7 +44,7 @@ export const useStore = <T extends Translations>(
                         onError,
                     )
 
-                    return appendParameters(template, onError, ...parameters)
+                    return renderTemplate(template, onError, ...parameters)
                 },
             }
         },

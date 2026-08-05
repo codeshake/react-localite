@@ -1,5 +1,13 @@
 /* eslint-disable unicorn/name-replacements */
-import { CLOSE_DELIMITER, KEY_PATH_SEPARATOR, OPEN_DELIMITER } from "~/constants"
+import { ReactNode } from "react"
+import {
+    CLOSING_TAG_PREFIX,
+    KEY_PATH_SEPARATOR,
+    PLACEHOLDER_CLOSE,
+    PLACEHOLDER_OPEN,
+    TAG_END,
+    TAG_START,
+} from "~/constants"
 import { LookupErrorHandler } from "~/errors"
 import { LeafObjectKeys, LeafValueKeys, ValueByNestedKey } from "./object"
 import { Split, Trim } from "./string"
@@ -14,6 +22,10 @@ export type LocaleStorage = {
 export type Dictionary = {
     [key: string]: string | Dictionary
 }
+
+export type DictionaryParameter = ((content: ReactNode) => ReactNode) | ReactNode
+
+export type DictionaryParameters = Record<string, DictionaryParameter>
 
 export type DictionaryPromiseParameters = {
     abortController?: AbortController
@@ -41,9 +53,11 @@ type DictValueVariables<
     Value extends string,
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Parameters = {},
-> = Value extends `${infer _}${typeof OPEN_DELIMITER}${infer Variable}${typeof CLOSE_DELIMITER}${infer Rest}`
-    ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, string>>
-    : Parameters
+> = Value extends `${infer _}${typeof PLACEHOLDER_OPEN}${infer Variable}${typeof PLACEHOLDER_CLOSE}${infer Rest}`
+    ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, DictionaryParameter>>
+    : Value extends `${infer _}${typeof TAG_START}${infer Variable}${typeof TAG_END}${infer _}${typeof TAG_START}${typeof CLOSING_TAG_PREFIX}${infer Variable}${typeof TAG_END}${infer Rest}`
+      ? DictValueVariables<Rest, Parameters & Record<Trim<Variable>, DictionaryParameter>>
+      : Parameters
 
 type DictParametersToArray<Value> = keyof Value extends never ? [] : [Value]
 
@@ -65,10 +79,10 @@ export type ContextStore<T extends Translations, D extends Dictionary = Dictiona
         key: TKey,
         ...parameters: TValue extends string
             ? string extends TValue
-                ? [Record<string, string>?]
+                ? [DictionaryParameters?]
                 : DictParametersToArray<DictValueVariables<TValue>>
             : []
-    ) => string
+    ) => ReactNode
 }
 
 export type Options<T extends Translations> = {
